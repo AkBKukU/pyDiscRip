@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyDiscRip"
+version = "0.1"
+authors = [
+  { name="AkBKukU", email="author@example.com" },
+]
+description = "Automate ripping optical discs and extracting data"
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "License :: OSI Approved :: MIT License"
+]
+dependencies = [
+    "pyudev",
+    "python-libdiscid",
+    "musicbrainzngs",
+    "unidecode",
+    "ffmpeg-python",
+    "greaseweazle @ git+https://github.com/keirf/greaseweazle.git@master"
+]
+
+[project.urls]
+Homepage = "https://github.com/AkBKukU/pyDiscRip"
+Issues = "https://github.com/AkBKukU/pyDiscRip/issues"
+
+[tool.setuptools.packages.find]
+where = ['.']
+include = ['discrip', 'handler*', 'config']
+
+[tool.setuptools.package-data]
+config = ['*.json']
+
+[project.scripts]
+discrip = "discrip:discrip.main"
