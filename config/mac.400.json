@@ -1,0 +1,15 @@
+{
+    "Floppy": {
+        "flux_output": "raw",
+        "gw": {
+            "tracks": "c=0-79"
+        }
+    },
+    "FLUX": {
+        "convert_output": "dsk",
+        "gw": {
+            "tracks": "c=0-79",
+            "format": "mac.400"
+        }
+    }
+}

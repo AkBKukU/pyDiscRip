@@ -60,6 +60,16 @@ class DataHandlerFLUX(DataHandler):
                     "BINARY": f"{self.project_dir}.img" # Reusing project dir for name
                 }
             }
+        else:
+            data = {
+                "type_id": "BINARY",
+                "processed_by": [],
+                "data_dir": self.ensureDir(f"{self.project_dir}/BINARY"),
+                "data_files": {
+                    "BINARY": f"{self.project_dir}.{self.config_data["convert_output"]}" # Reusing project dir for name
+                }
+            }
+
 
         # Import greaseweazle read module to access hardware
         mod = importlib.import_module('greaseweazle.tools.convert')
