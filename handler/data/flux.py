@@ -45,6 +45,49 @@ class DataHandlerFLUX(DataHandler):
         # Data types output
         self.data_outputs=["BINARY"]
 
+    def buildArgs(self,data_in, data,default_diskdef=True):
+        # gw modules individually parse arguments to control rip process. This
+        # builds fake argumets to pass to module
+        # For more information on gw parameters run `gw read --help`
+        args=[]
+        args.append("pyDiscRip") # Not actually used but index position is needed
+        args.append("convert") # Not actually used but index position is needed
+
+        # Process all config options to build parameters for gw module
+        if "diskdefs" in self.config_data["gw"] and self.config_data["gw"]["diskdefs"] is not None:
+            args.append("--diskdefs")
+            args.append(str(self.config_data["gw"]["diskdefs"]))
+        else:
+            if not default_diskdef:
+                args.append("--diskdefs")
+                args.append(os.path.realpath(__file__).replace(os.path.basename(__file__),"")+"/../../config/handler/flux/diskdefs.cfg")
+        if "format" in self.config_data["gw"] and self.config_data["gw"]["format"] is not None:
+            args.append("--format")
+            args.append(str(self.config_data["gw"]["format"]))
+        if "tracks" in self.config_data["gw"] and self.config_data["gw"]["tracks"] is not None:
+            args.append("--tracks")
+            args.append(str(self.config_data["gw"]["tracks"]))
+        if "seek-retries" in self.config_data["gw"] and self.config_data["gw"]["seek-retries"] is not None:
+            args.append("--seek-retries")
+            args.append(str(self.config_data["gw"]["seek-retries"]))
+        if "pll" in self.config_data["gw"] and self.config_data["gw"]["pll"] is not None:
+            args.append("--pll")
+            args.append(self.config_data["gw"]["pll"])
+        if "hard-sectors" in self.config_data["gw"] and self.config_data["gw"]["hard-sectors"] is not None:
+            args.append("--hard-sectors")
+        if "reverse" in self.config_data["gw"] and self.config_data["gw"]["reverse"] is not None:
+            args.append("--reverse")
+
+        # Add the file input as parameter
+        args.append(f"{data_in["data_dir"]}/{data_in["data_files"]["flux"]}")
+
+        # Add the file output as final parameter
+        args.append(f"{data["data_dir"]}/{data["data_files"]["BINARY"]}")
+
+        # Log all parameters to be passed to gw read
+        self.log("floppy_gw_args",args,json_output=True)
+
+        return args
 
     def convertData(self, data_in):
         """Use gw python modules to convert FLUX to BINARY
@@ -75,51 +118,21 @@ class DataHandlerFLUX(DataHandler):
         mod = importlib.import_module('greaseweazle.tools.convert')
         main = mod.__dict__['main']
 
-        # gw modules individually parse arguments to control rip process. This
-        # builds fake argumets to pass to module
-        # For more information on gw parameters run `gw read --help`
-        args=[]
-        args.append("pyDiscRip") # Not actually used but index position is needed
-        args.append("convert") # Not actually used but index position is needed
 
-        # Process all config options to build parameters for gw module
-        if "diskdefs" in self.config_data["gw"] and self.config_data["gw"]["diskdefs"] is not None:
-            args.append("--diskdefs")
-            args.append(str(self.config_data["gw"]["diskdefs"]))
-        else:
-            # Add repo diskdefs if none is provided
-            args.append("--diskdefs")
-            args.append(os.path.realpath(__file__).replace(os.path.basename(__file__),"")+"/../../config/handler/flux/diskdefs.cfg")
-        if "format" in self.config_data["gw"] and self.config_data["gw"]["format"] is not None:
-            args.append("--format")
-            args.append(str(self.config_data["gw"]["format"]))
-        if "tracks" in self.config_data["gw"] and self.config_data["gw"]["tracks"] is not None:
-            args.append("--tracks")
-            args.append(str(self.config_data["gw"]["tracks"]))
-        if "seek-retries" in self.config_data["gw"] and self.config_data["gw"]["seek-retries"] is not None:
-            args.append("--seek-retries")
-            args.append(str(self.config_data["gw"]["seek-retries"]))
-        if "pll" in self.config_data["gw"] and self.config_data["gw"]["pll"] is not None:
-            args.append("--pll")
-            args.append(self.config_data["gw"]["pll"])
-        if "hard-sectors" in self.config_data["gw"] and self.config_data["gw"]["hard-sectors"] is not None:
-            args.append("--hard-sectors")
-        if "reverse" in self.config_data["gw"] and self.config_data["gw"]["reverse"] is not None:
-            args.append("--reverse")
-
-        # Add the file input as parameter
-        args.append(f"{data_in["data_dir"]}/{data_in["data_files"]["flux"]}")
-
-        # Add the file output as final parameter
-        args.append(f"{data["data_dir"]}/{data["data_files"]["BINARY"]}")
-
-        # Log all parameters to be passed to gw read
-        self.log("floppy_gw_args",args,json_output=True)
 
         # Don't re-convert flux
         if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["BINARY"]}"):
             # Run the gw read process using arguments
-            res = main(args)
+            try:
+                # Use default diskdef
+                print("It's a me mario")
+                args = self.buildArgs(data_in, data)
+                res = main(args)
+            except Exception as e:
+                # Use repo diskdef
+                print("L is real")
+                args = self.buildArgs(data_in, data,default_diskdef=False)
+                res = main(args)
 
         # Return all generated data
         return [data]
