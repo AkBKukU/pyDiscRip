@@ -56,8 +56,12 @@ def config_read(filepath=None):
         config_local = os.path.realpath(__file__).replace(os.path.basename(__file__),"")+"config/"+filepath
         # Check for config file next to script
         if not os.path.exists(config_local):
-            print(f"Config file \"{filepath}\" not found.")
-            sys.exit(1)
+            # Check for config file next to script without extension
+            if not os.path.exists(config_local+".json"):
+                print(f"Config file \"{filepath}\" not found.")
+                sys.exit(1)
+            else:
+                filepath = config_local+".json"
         else:
             filepath = config_local
 
