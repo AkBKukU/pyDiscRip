@@ -86,6 +86,10 @@ class DataHandlerFLUX(DataHandler):
         if "diskdefs" in self.config_data["gw"] and self.config_data["gw"]["diskdefs"] is not None:
             args.append("--diskdefs")
             args.append(str(self.config_data["gw"]["diskdefs"]))
+        else:
+            # Add repo diskdefs if none is provided
+            args.append("--diskdefs")
+            args.append(os.path.realpath(__file__).replace(os.path.basename(__file__),"")+"/../../config/handler/flux/diskdefs.cfg")
         if "format" in self.config_data["gw"] and self.config_data["gw"]["format"] is not None:
             args.append("--format")
             args.append(str(self.config_data["gw"]["format"]))

@@ -1,0 +1,15 @@
+{
+    "Floppy": {
+        "flux_output": "raw",
+        "gw": {
+            "tracks": "c=0-76:h=0",
+        }
+    },
+    "FLUX": {
+        "convert_output": "img",
+        "gw": {
+            "tracks": "c=0-76:h=0",
+            "format": "ibm.3740"
+        }
+    }
+}

@@ -1,0 +1,15 @@
+{
+    "Floppy": {
+        "flux_output": "raw",
+        "gw": {
+            "tracks": "c=0-79"
+        }
+    },
+    "FLUX": {
+        "convert_output": "img",
+        "gw": {
+            "tracks": "c=0-79",
+            "format": "hp.lif.1651b"
+        }
+    }
+}
