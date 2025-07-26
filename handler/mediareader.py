@@ -5,6 +5,7 @@ from pprint import pprint
 # Internal Modules
 from handler.media.manager import MediaHandlerManager
 from handler.data.manager import DataHandlerManager
+from handler.handler import Handler
 
 class MediaReader(object):
 
@@ -15,6 +16,10 @@ class MediaReader(object):
         """Determine media_sample type and start ripping
 
         """
+        # Set starting status
+        media_sample["done"] = False
+        Handler.ensureDir(None,media_sample["name"])
+        callback_update(media_sample)
 
         # Init media manager
         media_manager = MediaHandlerManager()
@@ -54,6 +59,9 @@ class MediaReader(object):
             else:
                 print(f"Media type \"{media_sample["media_type"]}\" not supported")
 
+        # Set ending status
+        media_sample["done"] = True
+        callback_update(media_sample)
 
 
     def convert_data(media_sample,config_data):
