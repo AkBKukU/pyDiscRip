@@ -78,6 +78,23 @@ class Handler(object):
             sys.exit(1)
         return path
 
+
+    def status(self,data):
+        """Log status from processes
+
+        """
+        # Set filepath for status
+        status_path=self.ensureDir(f"{self.project_dir}/status")
+
+        # Build filename
+        filepath=f"{status_path}/{data["type_id"]}.json"
+
+        # Write data
+        with open(filepath, 'w', encoding="utf-8") as output:
+            output.write(json.dumps(data, indent=4))
+        return
+
+
     def log(self,action_name,text,json_output=False):
         """Log data from processes
 

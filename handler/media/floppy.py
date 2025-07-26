@@ -59,11 +59,13 @@ class MediaHandlerFloppy(MediaHandler):
             data = {
                 "type_id": "FLUX",
                 "processed_by": [],
+                "done": False,
                 "data_dir": self.ensureDir(f"{self.project_dir}/FLUX"),
                 "data_files": {
                     "flux": f"track00.0.raw"
                 }
             }
+        self.status(data)
 
         # Import greaseweazle read module to access hardware
         mod = importlib.import_module('greaseweazle.tools.read')
@@ -110,6 +112,8 @@ class MediaHandlerFloppy(MediaHandler):
             # Run the gw read process using arguments
             main(args)
 
+        data["done"]=True
+        self.status(data)
         # Return all generated data
         return data
 

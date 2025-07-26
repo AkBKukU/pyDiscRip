@@ -39,11 +39,13 @@ class MediaHandlerDVD(MediaHandler):
         data = {
             "type_id": "ISO9660",
             "processed_by": [],
+            "done": False,
             "data_dir":  self.ensureDir(f"{self.project_dir}/ISO9660/{media_sample["name"]}"),
             "data_files": {
                 "ISO": [f"{media_sample["name"]}.iso"]
             }
         }
+        self.status(data)
 
         # Don't re-rip ISO
         if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["ISO"][0]}"):
@@ -58,6 +60,8 @@ class MediaHandlerDVD(MediaHandler):
             self.osRun(cmd2)
             self.osRun(cmd3)
 
+        data["done"]=True
+        self.status(data)
         # Return all generated data
         return data
 

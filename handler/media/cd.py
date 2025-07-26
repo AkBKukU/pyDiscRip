@@ -89,6 +89,7 @@ class MediaHandlerCD(MediaHandler):
             data = {
                 "type_id": "BINCUE",
                 "processed_by": [],
+                "done": False,
                 "data_dir": self.ensureDir(f"{self.project_dir}/BINCUE/{media_sample["name"]}-S{sessions}"),
                 "data_files": {
                     "BIN": f"{media_sample["name"]}-S{sessions}.bin",
@@ -96,6 +97,8 @@ class MediaHandlerCD(MediaHandler):
                     "TOC": f"{media_sample["name"]}-S{sessions}.toc"
                 }
             }
+
+            self.status(data)
 
             # Don't re-rip BIN/TOC
             if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["BIN"]}"):
@@ -121,6 +124,8 @@ class MediaHandlerCD(MediaHandler):
 
             # Continue to next session
             sessions += 1
+            data["done"]=True
+            self.status(data)
             # Add generated data to output
             datas.append(data)
 
