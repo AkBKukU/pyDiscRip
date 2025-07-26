@@ -15,6 +15,8 @@ from pprint import pprint
 
 # External Modules
 import pyudev
+import asyncio
+import signal
 
 # Internal Modules
 from handler.mediareader import MediaReader
@@ -88,7 +90,45 @@ def config_dump(filename):
         json.dump(options, f, indent=4)
 
 
+global loop_state
+global server
+loop_state = True
+server = None
 
+
+async def asyncLoop():
+    """ Blocking main loop to provide time for async tasks to run"""
+    global loop_state
+    while loop_state:
+        await asyncio.sleep(1)
+
+
+def exit_handler(sig, frame):
+    """ Handle CTRL-C to gracefully end program and API connections """
+    global loop_state
+    print('You pressed Ctrl+C!')
+    loop_state = False
+    server.stop()
+
+
+async def startWeb():
+
+    # Internal Modules
+    from web.web import WebInterface
+    global server
+    server = WebInterface()
+
+    """ Start connections to async modules """
+
+    # Setup CTRL-C signal to end programm
+    signal.signal(signal.SIGINT, exit_handler)
+    print('Press Ctrl+C to exit program')
+
+    # Start async modules
+    L = await asyncio.gather(
+        server.start(),
+        asyncLoop()
+    )
 
 
 
@@ -107,7 +147,13 @@ def main():
     parser.add_argument('-d', '--configdump', help="Dump all config options. Optional filename to output to.",
                         nargs='?', default=None, const='config_options.json')
     parser.add_argument('-o', '--output', help="Directory to save data in")
+    parser.add_argument('-w', '--web', help="Start web server", action='store_true')
     args = parser.parse_args()
+
+    # Run web server
+    if args.web:
+        asyncio.run(startWeb())
+        sys.exit(0)
 
     # Dump config options and exit
     if args.configdump is not None:

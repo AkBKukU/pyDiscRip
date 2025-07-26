@@ -8,6 +8,9 @@ from handler.data.manager import DataHandlerManager
 
 class MediaReader(object):
 
+    async def rip_async(media_sample,config_data,callback_update=None):
+        MediaReader(media_sample,config_data,callback_update)
+
     def rip(media_sample,config_data,callback_update=None):
         """Determine media_sample type and start ripping
 
