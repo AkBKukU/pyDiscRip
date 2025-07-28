@@ -75,6 +75,8 @@ def config_read(filepath=None):
     return config_data
 
 
+
+
 def config_dump(filename):
     """ Save a JSON with all config parameter options for media and data handlers
 
@@ -111,12 +113,12 @@ def exit_handler(sig, frame):
     server.stop()
 
 
-async def startWeb():
+async def startWeb(settings=None):
 
     # Internal Modules
     from web.web import WebInterface
     global server
-    server = WebInterface()
+    server = WebInterface(settings)
 
     """ Start connections to async modules """
 
@@ -148,11 +150,31 @@ def main():
                         nargs='?', default=None, const='config_options.json')
     parser.add_argument('-o', '--output', help="Directory to save data in")
     parser.add_argument('-w', '--web', help="Start web server", action='store_true')
+    parser.add_argument('-s', '--settings', help="Settings file for web", default=None)
     args = parser.parse_args()
+
+    # Dump config options and exit
+    settings={
+            "drives": {
+                "Optical Disc": "/dev/sr0",
+                "Floppy A": "a",
+                "Floppy B": "b",
+            },
+            "web" : {
+                "port": 5000,
+                "ip": "0.0.0.0"
+            }
+        }
+    if args.settings is not None:
+        if args.settings == "":
+            print(json.dumps(settings, indent=4))
+        else:
+            settings = config_read(args.settings)
+        sys.exit(0)
 
     # Run web server
     if args.web:
-        asyncio.run(startWeb())
+        asyncio.run(startWeb(settings))
         sys.exit(0)
 
     # Dump config options and exit

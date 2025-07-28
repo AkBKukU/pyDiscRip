@@ -10,6 +10,7 @@ from flask import request
 from flask import send_file
 from flask import redirect
 from flask import make_response
+from flask import send_from_directory
 import logging
 
 from multiprocessing import Process
@@ -23,25 +24,33 @@ class WebInterface(object):
 
     """
 
-    def __init__(self):
+    def __init__(self,settings=None):
+
+        self.host_dir=os.path.realpath(__file__).replace(os.path.basename(__file__),"")
 
         self.app = Flask("PyDiscRip")
         self.app.logger.disabled = True
         #log = logging.getLogger('werkzeug')
         #log.disabled = True
 
+        # Static content
+        self.app.static_folder=self.host_dir+"http/static"
+        self.app.static_url_path='/static/'
         # Define routes in class to use with flask
         self.app.add_url_rule('/','home', self.index)
+        self.app.add_url_rule('/settings.json','settings_json', self.settings_json)
         self.app.add_url_rule('/rip','rip', self.web_rip,methods=["POST"])
-        self.app.add_url_rule('/rip/<name>','rip_data', self.web_rip_data)
+        self.app.add_url_rule('/output/<name>','rip_data', self.web_rip_data)
+
 
         # Set headers for server
         self.app.after_request(self.add_header)
 
-        self.host = "0.0.0.0"
-        self.port = 5001
+        if settings is not None:
+            self.settings=settings
+            self.host = settings["web"]["ip"]
+            self.port = settings["web"]["port"]
 
-        self.host_dir=os.path.realpath(__file__).replace(os.path.basename(__file__),"")
 
 
     def set_host(self,host_ip):
@@ -61,9 +70,18 @@ class WebInterface(object):
         r.headers['Cache-Control'] = 'public, max-age=0'
         return r
 
+    def static_files(self,name):
+        print(f"static: {name}")
+        return send_from_directory(self.host_dir+"http/static", name)
+
+
     def index(self):
         """ Simple class function to send HTML to browser """
         return send_file(self.host_dir+"http/home.html")
+
+    def settings_json(self):
+        """ Simple class function to send HTML to browser """
+        return json.dumps(self.settings)
 
     def web_rip(self):
         """ Simple class function to send HTML to browser """
