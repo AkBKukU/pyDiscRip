@@ -40,7 +40,6 @@ function buildOptionGroupList(data,id,name)
 				option.value=value[i]["group"];
 				option.innerText=value[i]["group"];
 				drivegroup.appendChild(option);
-
 			}
 		}
 		if(groups) select.appendChild(drivegroup);

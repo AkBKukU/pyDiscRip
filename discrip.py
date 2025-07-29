@@ -219,6 +219,9 @@ def main():
     # Pass settings
     config_data["settings"] = settings
 
+    MediaReader.rip_queue_drives(media_samples,config_data)
+    sys.exit(0)
+
     # Begin ripping all media samples provided
     rip_count = 1
     for media_sample in media_samples:

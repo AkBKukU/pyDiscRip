@@ -1,6 +1,8 @@
 
 # Python System
 from pprint import pprint
+from multiprocessing import Process
+import time
 
 # Internal Modules
 from handler.media.manager import MediaHandlerManager
@@ -9,8 +11,65 @@ from handler.handler import Handler
 
 class MediaReader(object):
 
+    class RipQueueGroupInconsistency(Exception):
+        pass
+
+
     async def rip_async(media_sample,config_data,callback_update=None):
         MediaReader(media_sample,config_data,callback_update)
+
+
+    def rip_queue(media_samples,config_data,callback_update=None):
+        use_groups=False
+        for media_sample in media_samples:
+            if "group" in media_sample and media_sample["group"]:
+                use_groups=True
+            elif ("group" not in media_sample or not media_sample["group"]) and use_groups==True:
+                raise RipQueueGroupInconsistency({"message":"Group and non-group media samples cannot be mixed"})
+
+        if use_groups:
+            MediaReader.rip_queue_groups(media_sample,config_data,callback_update)
+        else:
+            MediaReader.rip_queue_drives(media_sample,config_data,callback_update)
+
+
+    def rip_queue_drives(media_samples,config_data,callback_update=None):
+        #MediaReader.rip(media_sample,config_data,callback_update)
+
+        # Build dict of drives for tracking usage
+        drive_process={}
+        for media_sample in media_samples:
+            drive_process[media_sample["drive"]]=None
+            media_sample["done"]=False
+
+        # Count of samples to rip
+        samples_left = len(media_samples)
+        while(samples_left):
+            # Check if any media samples have free drives
+            for media_sample in media_samples:
+                if drive_process[media_sample["drive"]] is None or not drive_process[media_sample["drive"]].is_alive():
+
+                    drive_process[media_sample["drive"]] = Process(
+                            target=MediaReader.rip,
+                            kwargs={
+                                "media_sample":media_sample,
+                                "config_data":{},
+                                "callback_update":callback_update
+                            }
+                        )
+                    samples_left-=1
+            # sleep
+            time.sleep(1)
+
+        # Wait for all process to end
+        for key, value in drive_process.items():
+            value.join()
+
+
+    def rip_queue_groups(media_samples,config_data,callback_update=None):
+        print("nope")
+        #MediaReader.rip(media_sample,config_data,callback_update)
+
 
     def rip(media_sample,config_data,callback_update=None):
         """Determine media_sample type and start ripping
