@@ -52,7 +52,7 @@ class MediaOptical(MediaHandler):
             try:
                 d=cdio.Device(media_sample["drive"])
                 tracks = d.get_num_tracks()
-                print(f"Found disc with {drive_name} tracks")
+                print(f"Found disc with {tracks} tracks")
                 time.sleep(wait_load)
                 return
             except cdio.TrackError:
