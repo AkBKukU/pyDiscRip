@@ -3,6 +3,7 @@
 from pprint import pprint
 from multiprocessing import Process
 import time
+import subprocess
 
 # Internal Modules
 from handler.media.manager import MediaHandlerManager
@@ -47,7 +48,21 @@ class MediaReader(object):
         while(samples_left):
             # Check if any media samples have free drives
             for media_sample in media_samples:
+                if media_sample["done"]:
+                    continue
                 if drive_process[media_sample["drive"]] is None or not drive_process[media_sample["drive"]].is_alive():
+
+                    if drive_process[media_sample["drive"]] is not None:
+
+                        if media_sample["media_type"] == "CD" or media_sample["media_type"] == "DVD" or media_sample["media_type"].lower() == "auto":
+                            try:
+                                # Run command and store output
+                                result = subprocess.run(["eject "+media_sample["drive"]], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                            except subprocess.CalledProcessError as exc:
+                                print("Status : FAIL", exc.returncode, exc.output)
+                        # Wait for media change
+                        input("Change media_samples and press Enter to continue...")
+
 
                     drive_process[media_sample["drive"]] = Process(
                             target=MediaReader.rip,
@@ -57,6 +72,8 @@ class MediaReader(object):
                                 "callback_update":callback_update
                             }
                         )
+                    media_sample["done"]=True
+                    drive_process[media_sample["drive"]].start()
                     samples_left-=1
             # sleep
             time.sleep(1)
@@ -78,13 +95,12 @@ class MediaReader(object):
         # Set starting status
         media_sample["done"] = False
         Handler.ensureDir(None,media_sample["name"])
-        callback_update(media_sample)
 
         # Init media manager
         media_manager = MediaHandlerManager()
 
         # Check if a media type was provided
-        if "media_type" not in media_sample or media_sample["media_type"] == "auto":
+        if "media_type" not in media_sample or media_sample["media_type"].lower() == "auto":
             # Access the drive associated to the media to determine the type
             print("Finding media type")
             media_sample["media_type"] = media_manager.guessMediaType(media_sample["drive"])
@@ -120,7 +136,6 @@ class MediaReader(object):
 
         # Set ending status
         media_sample["done"] = True
-        callback_update(media_sample)
 
 
     def convert_data(media_sample,config_data):
