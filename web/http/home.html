@@ -2,17 +2,42 @@
 
 <head>
     <script type="text/javascript" src="static/script.js"> </script>
-    </head>
+	<link type="text/css" rel="stylesheet" href="static/style.css">
+</head>
 
 <body>
-    <fieldset class="flexFill" id="field_markers_pswitch">
-        <legend>Garbage <span id="pswitch_count"></span></legend>
+    <fieldset class="flexFill" id="media_sample_input">
+        <legend>Media Sample</legend>
         <form action="/rip" method="POST">
-        <input type="text" name="media_type" placeholder="Media type...">
-        <input type="text" name="media_drive" placeholder="Media Drive...">
-        <input type="text" name="media_name" placeholder="Media Name...">
-        <input type="text" name="media_description" placeholder="Media Description...">
-        <input type="submit" value="Start Rip" />
+
+            <div class="input_pair">
+                <label for="media_type">Type:</label>
+                <select name="media_type" id="media_type">
+                <optgroup label="Optical">
+                    <option value="AUTO">Auto (Optical Only)</option>
+                    <option value="CD">CD</option>
+                    <option value="DVD">DVD</option>
+                </optgroup>
+                <optgroup label="Greaseweazle">
+                    <option value="FLOPPY">Floppy</option>
+                </optgroup>
+                </select>
+            <div>
+            <div class="input_pair">
+                <label for="media_drive">Drive:</label>
+                <input type="text" id="media_drive" name="media_drive" placeholder="Media Drive...">
+            <div>
+            <div class="input_pair">
+                <label for="media_name">Name:</label>
+                <input type="text" name="media_name" placeholder="Media Name...">
+            <div>
+            <div class="input_pair">
+                <label for="media_description">Description:</label>
+                <input type="text" name="media_description" placeholder="Media Description...">
+            <div>
+            <div class="input_pair">
+                <input type="submit" value="Start Rip" />
+            <div>
         </form>
     </fieldset>
 </body>

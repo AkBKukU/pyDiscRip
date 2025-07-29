@@ -156,9 +156,25 @@ def main():
     # Dump config options and exit
     settings={
             "drives": {
-                "Optical Disc": "/dev/sr0",
-                "Floppy A": "a",
-                "Floppy B": "b",
+                "Optical":[
+                    {
+                        "name":"CD/DVD",
+                        "drive":"/dev/sr0",
+                        "group":"CD-DVD"
+                    }
+                ],
+                "Greaseweazle": [
+                    {
+                        "name":"Floppy A",
+                        "drive": "a",
+                        "group":"3.5in"
+                    },
+                    {
+                        "name":"Floppy B",
+                        "drive": "b",
+                        "group":"5.25in"
+                    }
+                ],
             },
             "web" : {
                 "port": 5000,
@@ -199,6 +215,10 @@ def main():
         config_data = config_read(args.config)
     else:
         config_data = {}
+
+    # Pass settings
+    config_data["settings"] = settings
+
     # Begin ripping all media samples provided
     rip_count = 1
     for media_sample in media_samples:
