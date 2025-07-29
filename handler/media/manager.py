@@ -6,6 +6,7 @@
 import pyudev
 
 # Internal Modules
+from handler.media.optical import MediaOptical
 from handler.media.cd import MediaHandlerCD
 from handler.media.dvd import MediaHandlerDVD
 from handler.media.floppy import MediaHandlerFloppy
@@ -27,15 +28,35 @@ class MediaHandlerManager(object):
 
         # Add all supported media types
         self.media_types={}
+        self.media_types["OPTICAL"] = MediaOptical()
         self.media_types["CD"] = MediaHandlerCD()
         self.media_types["DVD"] = MediaHandlerDVD()
         self.media_types["FLOPPY"] = MediaHandlerFloppy()
+
+    def loadMediaType(self,media_sample):
+        """Match media handler to type and return handler
+
+        """
+        # Iterate through all handlers
+        for type_id, media_type in self.media_types.items():
+            # If handler can proccess media return it
+            if media_type.mediaMatch(media_sample):
+                media_type.load(media_sample)
+                return
+
+        # No handlers found
+        return
 
 
     def findMediaType(self,media_sample):
         """Match media handler to type and return handler
 
         """
+        # Check if a media type was provided
+        if "media_type" not in media_sample or media_sample["media_type"].upper() == "OPTICAL":
+            # Access the drive associated to the media to determine the type
+            print("Finding media type")
+            media_sample["media_type"] = self.guessMediaType(media_sample["drive"])
 
         # Iterate through all handlers
         for type_id, media_type in self.media_types.items():

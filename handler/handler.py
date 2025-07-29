@@ -202,4 +202,21 @@ class Handler(object):
         # Return media sample with new data
         return media_sample
 
+    def load(self,media_sample,bypass=False):
+        """Load media before continuing.
 
+        Default method call waits for user to press enter
+
+        Overload with automatic methods where possible.
+        """
+
+        if bypass:
+            # Allow skipping blocking to handle externally
+            return
+        input(f"Please load [{media_sample["name"]}] into [{media_sample["drive"]}]")
+
+    def eject(self,media_sample):
+        """Remove media before continuing.
+        Overload with automatic methods where possible.
+        """
+        print(f"Please remove [{media_sample["name"]}] from [{media_sample["drive"]}]")

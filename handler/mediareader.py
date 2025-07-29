@@ -52,16 +52,6 @@ class MediaReader(object):
                     continue
                 if drive_process[media_sample["drive"]] is None or not drive_process[media_sample["drive"]].is_alive():
 
-                    if drive_process[media_sample["drive"]] is not None:
-
-                        if media_sample["media_type"] == "CD" or media_sample["media_type"] == "DVD" or media_sample["media_type"].lower() == "auto":
-                            try:
-                                # Run command and store output
-                                result = subprocess.run(["eject "+media_sample["drive"]], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                            except subprocess.CalledProcessError as exc:
-                                print("Status : FAIL", exc.returncode, exc.output)
-                        # Wait for media change
-                        input("Change media_samples and press Enter to continue...")
 
 
                     drive_process[media_sample["drive"]] = Process(
@@ -99,14 +89,12 @@ class MediaReader(object):
         # Init media manager
         media_manager = MediaHandlerManager()
 
-        # Check if a media type was provided
-        if "media_type" not in media_sample or media_sample["media_type"].lower() == "auto":
-            # Access the drive associated to the media to determine the type
-            print("Finding media type")
-            media_sample["media_type"] = media_manager.guessMediaType(media_sample["drive"])
+        # Load media
+        media_manager.loadMediaType(media_sample)
 
         # Get a media handler for this type of media_sample
         media_handler = media_manager.findMediaType(media_sample)
+
 
         # If a handler exists attempt to rip
         if media_handler is not None:
@@ -134,6 +122,8 @@ class MediaReader(object):
             else:
                 print(f"Media type \"{media_sample["media_type"]}\" not supported")
 
+        # Load media
+        media_handler.eject(media_sample)
         # Set ending status
         media_sample["done"] = True
 

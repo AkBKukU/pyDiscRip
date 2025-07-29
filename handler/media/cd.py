@@ -6,16 +6,19 @@
 import os
 import json
 from pathlib import Path
+import time
 
 # External Modules
 import libdiscid
 import musicbrainzngs
+import pycdio, cdio
 
 # Internal Modules
 from handler.media.media_handler import MediaHandler
+from handler.media.optical import MediaOptical
 
 
-class MediaHandlerCD(MediaHandler):
+class MediaHandlerCD(MediaOptical):
     """Handler for CD media types
 
     rips using a subprocess command to run `cdrdao` to create a BIN/CUE
@@ -215,5 +218,4 @@ class MediaHandlerCD(MediaHandler):
 
         # Return ripped data
         return datas
-
 
