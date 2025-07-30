@@ -215,6 +215,7 @@ class Handler(object):
             return
         input(f"Please load [{media_sample["name"]}] into [{media_sample["drive"]}]")
 
+
     def eject(self,media_sample):
         """Remove media before continuing.
         Overload with automatic methods where possible.

@@ -45,6 +45,19 @@ class MediaHandlerManager(object):
                 return
 
         # No handlers found
+
+    def ejectMediaType(self,media_sample):
+        """Match media handler to type and return handler
+
+        """
+        # Iterate through all handlers
+        for type_id, media_type in self.media_types.items():
+            # If handler can proccess media return it
+            if media_type.mediaMatch(media_sample):
+                media_type.eject(media_sample)
+                return
+
+        # No handlers found
         return
 
 

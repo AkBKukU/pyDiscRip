@@ -51,6 +51,18 @@ class MediaReader(object):
                 if media_sample["done"]:
                     continue
                 if drive_process[media_sample["drive"]] is None or not drive_process[media_sample["drive"]].is_alive():
+
+                    # Init media manager
+                    media_manager = MediaHandlerManager()
+
+                    # Eject existing
+                    if drive_process[media_sample["drive"]] is not None and not drive_process[media_sample["drive"]].is_alive():
+                        media_manager.ejectMediaType(media_sample)
+
+                    # Load media
+                    media_manager.loadMediaType(media_sample)
+
+                    # Start rip
                     drive_process[media_sample["drive"]] = Process(
                             target=MediaReader.rip,
                             kwargs={
@@ -101,9 +113,6 @@ class MediaReader(object):
         # Init media manager
         media_manager = MediaHandlerManager()
 
-        # Load media
-        media_manager.loadMediaType(media_sample)
-
         # Get a media handler for this type of media_sample
         media_handler = media_manager.findMediaType(media_sample)
 
@@ -134,8 +143,6 @@ class MediaReader(object):
             else:
                 print(f"Media type \"{media_sample["media_type"]}\" not supported")
 
-        # Load media
-        media_handler.eject(media_sample)
         # Set ending status
         media_sample["done"] = True
 
