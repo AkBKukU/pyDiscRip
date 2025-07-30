@@ -149,7 +149,7 @@ def main():
     parser.add_argument('-d', '--configdump', help="Dump all config options. Optional filename to output to.",
                         nargs='?', default=None, const='config_options.json')
     parser.add_argument('-o', '--output', help="Directory to save data in", default="")
-    parser.add_argument('-j', '--json-watch', help="Directory to save data in", default="")
+    parser.add_argument('-j', '--json-watch', help="Directory to save data in", default=None)
     parser.add_argument('-w', '--web', help="Start web server", action='store_true')
     parser.add_argument('-s', '--settings', help="Settings file for web", default=None)
     args = parser.parse_args()
@@ -182,7 +182,7 @@ def main():
                 "ip": "0.0.0.0"
             },
             "output": "./",
-            "watch": "./"
+            "watch": None
         }
     if args.settings is not None:
         if args.settings == "":
@@ -193,8 +193,6 @@ def main():
 
     # Output folder
     settings["output"]=args.output
-    # Watch folder
-    settings["watch"]=args.json_watch
 
     # Run web server
     if args.web:
@@ -207,7 +205,7 @@ def main():
         sys.exit(0)
 
     # If CSV is none exit
-    if args.csv == None:
+    if args.csv == None and args.json_watch is None:
         parser.print_help()
         sys.exit(0)
 
@@ -217,7 +215,9 @@ def main():
         sys.exit(0)
 
     # Read media samples to rip from CSV file
-    media_samples = rip_list_read(args.csv)
+    media_samples =[]
+    if args.csv is not None:
+        media_samples = rip_list_read(args.csv)
     # Load optional config file
     if args.config is not None:
         config_data = config_read(args.config)
@@ -226,6 +226,12 @@ def main():
 
     # Pass settings
     config_data["settings"] = settings
+
+    # Watch folder
+    if args.json_watch is not None:
+        settings["watch"]=args.json_watch
+        MediaReader.rip_queue_groups(media_samples,config_data)
+        sys.exit(0)
 
     MediaReader.rip_queue_drives(media_samples,config_data)
     sys.exit(0)

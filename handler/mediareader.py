@@ -4,6 +4,8 @@ from pprint import pprint
 from multiprocessing import Process
 import time
 import subprocess
+import glob
+import json
 
 # Internal Modules
 from handler.media.manager import MediaHandlerManager
@@ -11,28 +13,6 @@ from handler.data.manager import DataHandlerManager
 from handler.handler import Handler
 
 class MediaReader(object):
-
-    class RipQueueGroupInconsistency(Exception):
-        pass
-
-
-    async def rip_async(media_sample,config_data,callback_update=None):
-        MediaReader(media_sample,config_data,callback_update)
-
-
-    def rip_queue(media_samples,config_data,callback_update=None):
-        use_groups=False
-        for media_sample in media_samples:
-            if "group" in media_sample and media_sample["group"]:
-                use_groups=True
-            elif ("group" not in media_sample or not media_sample["group"]) and use_groups==True:
-                raise RipQueueGroupInconsistency({"message":"Group and non-group media samples cannot be mixed"})
-
-        if use_groups:
-            MediaReader.rip_queue_groups(media_sample,config_data,callback_update)
-        else:
-            MediaReader.rip_queue_drives(media_sample,config_data,callback_update)
-
 
     def rip_queue_drives(media_samples,config_data,callback_update=None):
         #MediaReader.rip(media_sample,config_data,callback_update)
@@ -83,24 +63,43 @@ class MediaReader(object):
 
 
     def rip_queue_groups(media_samples,config_data,callback_update=None):
-        drive_data=sconfig_data["settings"]["drives"]
+        drive_data=config_data["settings"]["drives"]
         # Build dict of drives for tracking usage
         groups={}
 
-        # Get drive groups
-        for drive_cat, drives in drive_process.items():
-            for drive in drives:
-                if drive["group"] not in groups:
-                    groups[drive["group"]]=[]
-
-        drive_process={}
+        # # Get drive groups
+        # for drive_cat, drives in drive_process.items():
+        #     for drive in drives:
+        #         if drive["group"] not in groups:
+        #             groups[drive["group"]]=[]
+        #
+        # drive_process={}
 
         # Load media samples from a directory of JSON files instead of passing
+        run=True
+        while(run):
 
-        for media_sample in media_samples:
-            drive_process[media_sample["drive"]]=None
-            media_sample["done"]=False
+            Handler.ensureDir(None,config_data["settings"]["watch"])
+            sample_files = glob.glob(f"{config_data["settings"]["watch"]}/*.json")
 
+
+            for sample_file in sample_files:
+                # Save config data to JSON
+                with open(sample_file, newline='') as jsonfile:
+                    raw_media_sample = json.load(jsonfile)
+                    new = True
+
+                    for media_sample in media_samples:
+                        if media_sample["name"] == raw_media_sample["name"]:
+                            new = False
+
+                    if new:
+                        media_samples.append(raw_media_sample)
+
+
+            for media_sample in media_samples:
+                pprint(media_sample)
+            time.sleep(3)
 
     def rip(media_sample,config_data,callback_update=None):
         """Determine media_sample type and start ripping
