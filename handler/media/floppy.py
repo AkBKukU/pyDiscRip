@@ -128,7 +128,7 @@ class MediaHandlerFloppy(MediaHandler):
         """
 
         # Setup rip output path
-        self.setProjectDir(media_sample["name"])
+        self.setProjectDir(self.project_dir+"/"+media_sample["name"])
 
         # Rip and return data
         return [self.ripToFlux(media_sample)]

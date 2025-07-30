@@ -8,6 +8,7 @@ import json
 from enum import Enum
 from datetime import datetime
 import subprocess
+from pprint import pprint
 
 # External Modules
 import unidecode
@@ -64,7 +65,7 @@ class Handler(object):
         """Update project dir path
 
         """
-        self.project_dir=project_dir
+        self.project_dir=self.ensureDir(project_dir)
 
     def ensureDir(self,path):
         """Ensured that a path exists by attempting to create it or throwing an error
@@ -129,6 +130,9 @@ class Handler(object):
             for key, value in config_data[self.type_id].items():
                 # Set all config values
                 self.config_data[key] = value
+
+        print("configure output")
+        self.setProjectDir(config_data["settings"]["output"]+"/"+self.project_dir)
 
 
     def configOptions(self):

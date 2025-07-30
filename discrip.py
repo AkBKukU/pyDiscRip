@@ -148,7 +148,8 @@ def main():
     parser.add_argument('-f', '--config', help="Config file for ripping", default=None)
     parser.add_argument('-d', '--configdump', help="Dump all config options. Optional filename to output to.",
                         nargs='?', default=None, const='config_options.json')
-    parser.add_argument('-o', '--output', help="Directory to save data in")
+    parser.add_argument('-o', '--output', help="Directory to save data in", default="")
+    parser.add_argument('-j', '--json-watch', help="Directory to save data in", default="")
     parser.add_argument('-w', '--web', help="Start web server", action='store_true')
     parser.add_argument('-s', '--settings', help="Settings file for web", default=None)
     args = parser.parse_args()
@@ -179,7 +180,9 @@ def main():
             "web" : {
                 "port": 5000,
                 "ip": "0.0.0.0"
-            }
+            },
+            "output": "./",
+            "watch": "./"
         }
     if args.settings is not None:
         if args.settings == "":
@@ -187,6 +190,11 @@ def main():
         else:
             settings = config_read(args.settings)
         sys.exit(0)
+
+    # Output folder
+    settings["output"]=args.output
+    # Watch folder
+    settings["watch"]=args.json_watch
 
     # Run web server
     if args.web:

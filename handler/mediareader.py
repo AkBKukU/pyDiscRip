@@ -67,7 +67,7 @@ class MediaReader(object):
                             target=MediaReader.rip,
                             kwargs={
                                 "media_sample":media_sample,
-                                "config_data":{},
+                                "config_data":config_data,
                                 "callback_update":callback_update
                             }
                         )

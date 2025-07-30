@@ -73,7 +73,7 @@ class MediaHandlerDVD(MediaHandler):
         print("Ripping as DVD")
         print("WARNING: This software does not yet distinguish between ISO9660 and UDF filesystems")
         # Setup rip output path
-        self.setProjectDir(media_sample["name"])
+        self.setProjectDir(self.project_dir+"/"+media_sample["name"])
 
         # Rip and return data
         return [self.ripDVD(media_sample)]
