@@ -46,7 +46,7 @@ class MediaOptical(MediaHandler):
 
         Overload with automatic methods where possible.
         """
-        print("Waiting for disc access")
+        print(f"Please insert [{media_sample["name"]}] into [{media_sample["drive"]}]")
         wait_load=0
         while(True):
             try:
@@ -56,9 +56,10 @@ class MediaOptical(MediaHandler):
                 time.sleep(wait_load)
                 return
             except cdio.TrackError:
-                print("Please insert disc")
+                print(f"Please insert [{media_sample["name"]}] into [{media_sample["drive"]}]")
                 time.sleep(3)
                 wait_load=10
+
 
     def eject(self,media_sample):
         """Eject drive tray

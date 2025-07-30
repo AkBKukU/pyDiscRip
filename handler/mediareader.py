@@ -51,9 +51,6 @@ class MediaReader(object):
                 if media_sample["done"]:
                     continue
                 if drive_process[media_sample["drive"]] is None or not drive_process[media_sample["drive"]].is_alive():
-
-
-
                     drive_process[media_sample["drive"]] = Process(
                             target=MediaReader.rip,
                             kwargs={
@@ -74,8 +71,23 @@ class MediaReader(object):
 
 
     def rip_queue_groups(media_samples,config_data,callback_update=None):
-        print("nope")
-        #MediaReader.rip(media_sample,config_data,callback_update)
+        drive_data=sconfig_data["settings"]["drives"]
+        # Build dict of drives for tracking usage
+        groups={}
+
+        # Get drive groups
+        for drive_cat, drives in drive_process.items():
+            for drive in drives:
+                if drive["group"] not in groups:
+                    groups[drive["group"]]=[]
+
+        drive_process={}
+
+        # Load media samples from a directory of JSON files instead of passing
+
+        for media_sample in media_samples:
+            drive_process[media_sample["drive"]]=None
+            media_sample["done"]=False
 
 
     def rip(media_sample,config_data,callback_update=None):
