@@ -132,7 +132,8 @@ class Handler(object):
                 self.config_data[key] = value
 
         print("configure output")
-        self.setProjectDir(config_data["settings"]["output"]+"/"+self.project_dir)
+        if config_data["settings"]["output"] != "":
+            self.setProjectDir(config_data["settings"]["output"]+"/"+self.project_dir)
 
 
     def configOptions(self):

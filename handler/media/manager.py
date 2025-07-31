@@ -10,6 +10,7 @@ from pprint import pprint
 from handler.media.optical import MediaOptical
 from handler.media.cd import MediaHandlerCD
 from handler.media.dvd import MediaHandlerDVD
+from handler.media.ddisk import MediaHandlerDDisk
 from handler.media.floppy import MediaHandlerFloppy
 
 
@@ -32,6 +33,7 @@ class MediaHandlerManager(object):
         self.media_types["OPTICAL"] = MediaOptical()
         self.media_types["CD"] = MediaHandlerCD()
         self.media_types["DVD"] = MediaHandlerDVD()
+        self.media_types["DDISK"] = MediaHandlerDDisk()
         self.media_types["FLOPPY"] = MediaHandlerFloppy()
 
     def loadMediaType(self,media_sample,bypass=False):
