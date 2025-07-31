@@ -149,7 +149,8 @@ def main():
     parser.add_argument('-d', '--configdump', help="Dump all config options. Optional filename to output to.",
                         nargs='?', default=None, const='config_options.json')
     parser.add_argument('-o', '--output', help="Directory to save data in", default="")
-    parser.add_argument('-j', '--json-watch', help="Directory to save data in", default=None)
+    parser.add_argument('-j', '--json-watch', help="Directory to watch for JSON sample files", default=None)
+    parser.add_argument('-p', '--preserve-order', help="Maintain FIFO rip order for group ripping", action='store_true')
     parser.add_argument('-w', '--web', help="Start web server", action='store_true')
     parser.add_argument('-s', '--settings', help="Settings file for web", default=None)
     args = parser.parse_args()
@@ -199,7 +200,8 @@ def main():
                 "ip": "0.0.0.0"
             },
             "output": "./",
-            "watch": None
+            "watch": None,
+            "fifo": True
         }
     if args.settings is not None:
         if args.settings == "":
@@ -210,6 +212,7 @@ def main():
 
     # Output folder
     settings["output"]=args.output
+    settings["fifo"]=args.preserve_order
 
     # Run web server
     if args.web:

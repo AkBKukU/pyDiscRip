@@ -164,14 +164,19 @@ class MediaReader(object):
                             if media_sample["done"]:
                                 continue
 
+                            # Check if sample can be handled by group
+                            if media_sample["group"] != group_name:
+                                continue
+
                             # Assign free drive to sample
                             media_sample["drive"]=drive
 
                             # Find preceeding media samples to wait for
                             before=[]
-                            for driveb, data in group["drive"].items():
-                                if data["order"] is not None and data["order"] < media_sample["id"]:
-                                    before.append(group["drive"][driveb]["process"].pid)
+                            if config_data["settings"]["fifo"]:
+                                for driveb, data in group["drive"].items():
+                                    if data["order"] is not None and data["order"] < media_sample["id"]:
+                                        before.append(group["drive"][driveb]["process"].pid)
 
                             # Store media sample order
                             group["drive"][drive]["order"]=media_sample["id"]
@@ -190,7 +195,7 @@ class MediaReader(object):
                             # Start rip
                             group["drive"][drive]["process"].start()
                             # Allow process moment to start because is_alive() is not instant
-                            sleep.time(1)
+                            time.sleep(1)
                             # Process state
                             MediaReader.processState(group["drive"][drive]["process"].pid, {"is_alive":group["drive"][drive]["process"].is_alive()})
                             break

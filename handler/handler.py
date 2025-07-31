@@ -89,7 +89,6 @@ class Handler(object):
         try:
             if not os.path.exists(path):
                 os.makedirs(path)
-                print(f"{self.type_id} - Making directory: {path}")
         except Exception as e:
             print(f"Error making directory: {path}")
             sys.exit(1)
@@ -150,7 +149,6 @@ class Handler(object):
                 # Set all config values
                 self.config_data[key] = value
 
-        print(f"{self.type_id} - configure output: {self.getPath()}")
         if config_data["settings"]["output"] != "":
             self.setOutputDir(config_data["settings"]["output"])
 

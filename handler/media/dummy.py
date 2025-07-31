@@ -69,7 +69,6 @@ class MediaHandlerDummy(MediaHandler):
         """Rip DVD with ddrescue
 
         """
-        print("Creating dummy rip of /dev/random")
         # Setup rip output path
         self.setProjectDir(self.project_timestamp+"_"+media_sample["name"])
 
@@ -78,11 +77,11 @@ class MediaHandlerDummy(MediaHandler):
 
 
     def load(self,media_sample,bypass=False):
-        print(f"Dummy [{media_sample["name"]}] Loading")
+        print(f"Dummy [{media_sample["name"]}] Loading to [{media_sample["drive"]}]")
         delay=int(random.random()*20)
         time.sleep(delay)
 
 
     def eject(self,media_sample):
-        print(f"Dummy [{media_sample["name"]}] Done")
+        print(f"Dummy [{media_sample["name"]}] Done [{media_sample["drive"]}]")
         time.sleep(1)
