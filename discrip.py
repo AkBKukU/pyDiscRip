@@ -161,19 +161,28 @@ def main():
                     {
                         "name":"CD/DVD",
                         "drive":"/dev/sr0",
-                        "group":"CD-DVD"
+                        "group":"CD-DVD",
+                        "type":"OPTICAL"
+                    },
+                    {
+                        "name":"Laptop CD/DVD",
+                        "drive":"/dev/sr1",
+                        "group":"CD-DVD",
+                        "type":"OPTICAL"
                     }
                 ],
                 "Greaseweazle": [
                     {
                         "name":"Floppy A",
                         "drive": "a",
-                        "group":"3.5in"
+                        "group":"3.5in",
+                        "type":"FLOPPY"
                     },
                     {
                         "name":"Floppy B",
                         "drive": "b",
-                        "group":"5.25in"
+                        "group":"5.25in",
+                        "type":"FLOPPY"
                     }
                 ],
             },

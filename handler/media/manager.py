@@ -4,6 +4,7 @@
 
 # External Modules
 import pyudev
+from pprint import pprint
 
 # Internal Modules
 from handler.media.optical import MediaOptical
@@ -33,7 +34,7 @@ class MediaHandlerManager(object):
         self.media_types["DVD"] = MediaHandlerDVD()
         self.media_types["FLOPPY"] = MediaHandlerFloppy()
 
-    def loadMediaType(self,media_sample):
+    def loadMediaType(self,media_sample,bypass=False):
         """Match media handler to type and return handler
 
         """
@@ -41,7 +42,7 @@ class MediaHandlerManager(object):
         for type_id, media_type in self.media_types.items():
             # If handler can proccess media return it
             if media_type.mediaMatch(media_sample):
-                media_type.load(media_sample)
+                media_type.load(media_sample,bypass)
                 return
 
         # No handlers found

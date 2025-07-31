@@ -57,7 +57,7 @@ class MediaOptical(MediaHandler):
                 return
             except cdio.TrackError:
                 print(f"Please insert [{media_sample["name"]}] into [{media_sample["drive"]}]")
-                time.sleep(3)
+                self.eject(media_sample)
                 wait_load=10
 
 
@@ -66,4 +66,4 @@ class MediaOptical(MediaHandler):
         """
         d=cdio.Device(media_sample["drive"])
         d.eject_media()
-        time.sleep(2)
+        time.sleep(3)

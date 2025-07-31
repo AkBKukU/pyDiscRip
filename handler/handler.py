@@ -183,7 +183,7 @@ class Handler(object):
         """
 
         # Setup rip output path
-        self.setProjectDir(media_sample["name"])
+        self.setProjectDir(self.project_dir+"/"+media_sample["name"])
 
         # Go through all data in media sample
         for data in media_sample["data"]:

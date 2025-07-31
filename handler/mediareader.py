@@ -66,14 +66,20 @@ class MediaReader(object):
         drive_data=config_data["settings"]["drives"]
         # Build dict of drives for tracking usage
         groups={}
+        drive_process={}
 
-        # # Get drive groups
-        # for drive_cat, drives in drive_process.items():
-        #     for drive in drives:
-        #         if drive["group"] not in groups:
-        #             groups[drive["group"]]=[]
-        #
-        # drive_process={}
+        # Get drive groups
+        for drive_cat, drives in drive_data.items():
+            for drive in drives:
+                if drive["group"] not in groups:
+                    groups[drive["group"]]={}
+                    groups[drive["group"]]["type"]=drive["type"]
+                    groups[drive["group"]]["drive"]={}
+                groups[drive["group"]]["drive"][drive["drive"]]=None
+
+        print("Found Drive Groups:")
+        pprint(groups)
+
 
         # Load media samples from a directory of JSON files instead of passing
         run=True
@@ -92,14 +98,50 @@ class MediaReader(object):
                     for media_sample in media_samples:
                         if media_sample["name"] == raw_media_sample["name"]:
                             new = False
-
                     if new:
+                        if "done" not in raw_media_sample:
+                            raw_media_sample["done"]=False
+
+                        raw_media_sample["media_type"]=raw_media_sample["media_type"].upper()
                         media_samples.append(raw_media_sample)
 
 
+
+            # Init media manager
+            media_manager = MediaHandlerManager()
+
             for media_sample in media_samples:
-                pprint(media_sample)
+                if media_sample["done"]:
+                    continue
+
+                for drive, process in groups[media_sample["group"]]["drive"].items():
+                    if groups[media_sample["group"]]["drive"][drive] is None or not groups[media_sample["group"]]["drive"][drive].is_alive():
+                        media_sample["drive"]=drive
+
+                        print("Ripping Media Sample:")
+                        pprint(media_sample)
+
+
+                        # Start rip
+                        groups[media_sample["group"]]["drive"][drive] = Process(
+                                target=MediaReader.rip_auto,
+                                kwargs={
+                                    "media_sample":media_sample,
+                                    "config_data":config_data,
+                                    "callback_update":callback_update
+                                }
+                            )
+                        media_sample["done"]=True
+                        groups[media_sample["group"]]["drive"][drive].start()
+                        break
+
+
+
             time.sleep(3)
+
+        for group, drives in groups.items():
+            for drive, process in drives.items():
+                process.join()
 
     def rip(media_sample,config_data,callback_update=None):
         """Determine media_sample type and start ripping
@@ -107,7 +149,6 @@ class MediaReader(object):
         """
         # Set starting status
         media_sample["done"] = False
-        Handler.ensureDir(None,media_sample["name"])
 
         # Init media manager
         media_manager = MediaHandlerManager()
@@ -144,6 +185,27 @@ class MediaReader(object):
 
         # Set ending status
         media_sample["done"] = True
+
+
+    def rip_auto(media_sample,config_data,callback_update=None):
+        """Determine media_sample type and start ripping
+
+        """
+
+        # Init media manager
+        media_manager = MediaHandlerManager()
+
+        # Load media
+        media_manager.loadMediaType(media_sample,bypass=True)
+
+        # Get a media handler for this type of media_sample
+        media_handler = media_manager.findMediaType(media_sample)
+
+        # Rip
+        MediaReader.rip(media_sample,config_data,callback_update)
+
+        # Eject media
+        media_manager.ejectMediaType(media_sample)
 
 
     def convert_data(media_sample,config_data):
