@@ -12,7 +12,8 @@ from handler.media.cd import MediaHandlerCD
 from handler.media.dvd import MediaHandlerDVD
 from handler.media.ddisk import MediaHandlerDDisk
 from handler.media.floppy import MediaHandlerFloppy
-
+# Testing only
+from handler.media.dummy import MediaHandlerDummy
 
 class MediaHandlerManager(object):
     """Manager for media types
@@ -35,6 +36,8 @@ class MediaHandlerManager(object):
         self.media_types["DVD"] = MediaHandlerDVD()
         self.media_types["DDISK"] = MediaHandlerDDisk()
         self.media_types["FLOPPY"] = MediaHandlerFloppy()
+        # Testing only
+        self.media_types["DUMMY"] = MediaHandlerDummy()
 
     def loadMediaType(self,media_sample,bypass=False):
         """Match media handler to type and return handler

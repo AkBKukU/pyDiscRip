@@ -185,6 +185,20 @@ def main():
                         "type":"FLOPPY"
                     }
                 ],
+                "Dummy": [
+                    {
+                        "name":"Random A",
+                        "drive": "/dev/random1",
+                        "group":"dummy",
+                        "type":"DUMMY"
+                    },
+                    {
+                        "name":"Random B",
+                        "drive": "/dev/random2",
+                        "group":"dummy",
+                        "type":"DUMMY"
+                    }
+                ],
             },
             "web" : {
                 "port": 5000,
