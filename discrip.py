@@ -159,12 +159,6 @@ def main():
             "drives": {
                 "Optical":[
                     {
-                        "name":"CD/DVD",
-                        "drive":"/dev/sr0",
-                        "group":"CD-DVD",
-                        "type":"OPTICAL"
-                    },
-                    {
                         "name":"Laptop CD/DVD",
                         "drive":"/dev/sr1",
                         "group":"CD-DVD",

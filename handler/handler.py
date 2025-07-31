@@ -88,7 +88,10 @@ class Handler(object):
         status_path=self.ensureDir(f"{self.project_dir}/status")
 
         # Build filename
-        filepath=f"{status_path}/{data["type_id"]}.json"
+        if "type_id" in data:
+            filepath=f"{status_path}/{data["type_id"]}.json"
+        else:
+            filepath=f"{status_path}/status.json"
 
         # Write data
         with open(filepath, 'w', encoding="utf-8") as output:
