@@ -15,6 +15,9 @@ from handler.handler import Handler
 class MediaReader(object):
 
     def processState(pid,value=None):
+        """Sets and stores PID state of a process as a dict in json to /tmp folder
+
+        """
         tmp=Handler.ensureDir(None,"/tmp/discrip/pid")
         if value is None:
             # read
@@ -27,7 +30,9 @@ class MediaReader(object):
 
 
     def rip_queue_drives(media_samples,config_data,callback_update=None):
-        #MediaReader.rip(media_sample,config_data,callback_update)
+        """ Use pre-set drive values in media_samples queue to rip data
+
+        """
 
         # Build dict of drives for tracking usage
         drive_process={}
@@ -42,6 +47,8 @@ class MediaReader(object):
             for media_sample in media_samples:
                 if media_sample["done"]:
                     continue
+
+                # Check if drive is free
                 if drive_process[media_sample["drive"]] is None or not drive_process[media_sample["drive"]].is_alive():
 
                     # Init media manager
@@ -63,10 +70,15 @@ class MediaReader(object):
                                 "callback_update":callback_update
                             }
                         )
+                    # Mark media as done
                     media_sample["done"]=True
+
+                    # Start ripping process
                     drive_process[media_sample["drive"]].start()
+
+                    # Count down samples
                     samples_left-=1
-            # sleep
+            # Pass time before checking drives again
             time.sleep(1)
 
         # Wait for all process to end
@@ -75,48 +87,59 @@ class MediaReader(object):
 
 
     def rip_queue_groups(media_samples,config_data,callback_update=None):
-        drive_data=config_data["settings"]["drives"]
+        """ Live ripping with drive groups. Uses folder of JSON for input of samples
+
+        """
+
         # Build dict of drives for tracking usage
+        drive_data=config_data["settings"]["drives"]
         groups={}
         drive_process={}
 
         # Get drive groups
         for drive_cat, drives in drive_data.items():
             for drive in drives:
+                # Add new groups
                 if drive["group"] not in groups:
                     groups[drive["group"]]={}
                     groups[drive["group"]]["type"]=drive["type"]
                     groups[drive["group"]]["drive"]={}
+                # Add drive to group
                 groups[drive["group"]]["drive"][drive["drive"]]={}
                 groups[drive["group"]]["drive"][drive["drive"]]["process"]=None
                 groups[drive["group"]]["drive"][drive["drive"]]["order"]=None
 
+        # List out groups
         print("Found Drive Groups:")
         pprint(groups)
 
+        # Sample counter for media order preservation
         sample_counter=0
 
-        # Load media samples from a directory of JSON files instead of passing
-        run=True
+        # Setup Watch dir
+        Handler.ensureDir(None,config_data["settings"]["watch"])
+
+        run=True # TODO - This should be controled by callback_update to be able to stop
         while(run):
-
-            Handler.ensureDir(None,config_data["settings"]["watch"])
+            # Load media samples from a directory of JSON files instead of passing
             sample_files = glob.glob(f"{config_data["settings"]["watch"]}/*.json")
-
-
             for sample_file in sample_files:
-                # Save config data to JSON
+
                 with open(sample_file, newline='') as jsonfile:
                     raw_media_samples = json.load(jsonfile)
+                    # If it's not a list make it one
                     if not isinstance(raw_media_samples, list):
                         raw_media_samples = [raw_media_samples]
 
+                    # Check all sample files
                     for raw_media_sample in raw_media_samples:
                         new = True
 
+                        # Check if sample already in queue
                         for media_sample in media_samples:
                             if media_sample["name"] == raw_media_sample["name"]:
                                 new = False
+                        # Add new sample to queue
                         if new:
                             if "done" not in raw_media_sample:
                                 raw_media_sample["done"]=False
@@ -126,35 +149,33 @@ class MediaReader(object):
                             sample_counter+=1
                             media_samples.append(raw_media_sample)
 
-
-
-            # Init media manager
-            media_manager = MediaHandlerManager()
+            # Check drive groups for free drives
             for group_name, group in groups.items():
                 for drive, process in group["drive"].items():
-
                     if group["drive"][drive]["process"] is None or not group["drive"][drive]["process"].is_alive():
-                        if group["drive"][drive]["process"] is not None:
 
+                        # Store state for existing ended process
+                        if group["drive"][drive]["process"] is not None:
                             MediaReader.processState(group["drive"][drive]["process"].pid, {"is_alive":group["drive"][drive]["process"].is_alive()})
-                        # Process is dead, find media
+
+                        # Drive is free, find media
                         for media_sample in media_samples:
 
                             if media_sample["done"]:
                                 continue
 
+                            # Assign free drive to sample
                             media_sample["drive"]=drive
 
-                            # print("Ripping Media Sample:")
-                            # pprint(media_sample)
-
+                            # Find preceeding media samples to wait for
                             before=[]
                             for driveb, data in group["drive"].items():
                                 if data["order"] is not None and data["order"] < media_sample["id"]:
                                     before.append(group["drive"][driveb]["process"].pid)
 
-                            # Start rip
+                            # Store media sample order
                             group["drive"][drive]["order"]=media_sample["id"]
+                            # Configure rip
                             group["drive"][drive]["process"] = Process(
                                     target=MediaReader.rip_auto,
                                     kwargs={
@@ -164,18 +185,24 @@ class MediaReader(object):
                                         "wait":before
                                     }
                                 )
+                            # Mark sample done
                             media_sample["done"]=True
+                            # Start rip
                             group["drive"][drive]["process"].start()
+                            # Allow process moment to start because is_alive() is not instant
+                            sleep.time(1)
+                            # Process state
                             MediaReader.processState(group["drive"][drive]["process"].pid, {"is_alive":group["drive"][drive]["process"].is_alive()})
                             break
 
-
-
+                # Wait before checking for free drives
                 time.sleep(3)
 
+        # Wait for all processes to end
         for group, drives in groups.items():
             for drive, process in drives.items():
                 process["process"].join()
+
 
     def rip(media_sample,config_data,callback_update=None):
         """Determine media_sample type and start ripping
@@ -226,14 +253,14 @@ class MediaReader(object):
 
 
     def rip_auto(media_sample,config_data,callback_update=None,wait=None):
-        """Determine media_sample type and start ripping
+        """ Attempt to automatically manage ripping process for samples
 
         """
 
         # Init media manager
         media_manager = MediaHandlerManager()
 
-        # Load media
+        # Load media with bypass for blocking actions where possible
         media_manager.loadMediaType(media_sample,bypass=True)
 
         # Get a media handler for this type of media_sample
@@ -242,6 +269,7 @@ class MediaReader(object):
         # Rip
         MediaReader.rip(media_sample,config_data,callback_update)
 
+        # Wait for preeceding processes to keep media output order same
         if wait is not None:
             for process in wait:
                 while(MediaReader.processState(process)["is_alive"]):
