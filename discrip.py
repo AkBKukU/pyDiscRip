@@ -160,7 +160,7 @@ def main():
                 "Optical":[
                     {
                         "name":"Laptop CD/DVD",
-                        "drive":"/dev/sr1",
+                        "drive":"/dev/sr0",
                         "group":"CD-DVD",
                         "type":"OPTICAL"
                     }

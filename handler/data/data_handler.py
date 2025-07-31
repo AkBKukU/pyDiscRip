@@ -38,7 +38,7 @@ class DataHandler(Handler):
         # Set data type id for later use
         self.type_id=None
         # Set directory to work in
-        self.project_dir="./"
+        self.project_dir=""
         # Get current datetime
         self.project_timestamp=str(datetime.now().isoformat()).replace(":","-")
         # Data types output for later use

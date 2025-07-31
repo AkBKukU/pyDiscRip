@@ -40,7 +40,7 @@ class MediaHandlerDVD(MediaHandler):
             "type_id": "ISO9660",
             "processed_by": [],
             "done": False,
-            "data_dir":  self.ensureDir(f"{self.project_dir}/ISO9660/{media_sample["name"]}"),
+            "data_dir":  self.ensureDir(f"{self.getPath()}/ISO9660/{media_sample["name"]}"),
             "data_files": {
                 "ISO": [f"{media_sample["name"]}.iso"]
             }
@@ -73,7 +73,7 @@ class MediaHandlerDVD(MediaHandler):
         print("Ripping as DVD")
         print("WARNING: This software does not yet distinguish between ISO9660 and UDF filesystems")
         # Setup rip output path
-        self.setProjectDir(self.project_dir+"/"+media_sample["name"])
+        self.setProjectDir(media_sample["name"])
 
         # Rip and return data
         return [self.ripDVD(media_sample)]

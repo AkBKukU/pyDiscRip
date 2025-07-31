@@ -98,7 +98,7 @@ class DataHandlerFLUX(DataHandler):
             data = {
                 "type_id": "BINARY",
                 "processed_by": [],
-                "data_dir": self.ensureDir(f"{self.project_dir}/BINARY"),
+                "data_dir": self.ensureDir(f"{self.getPath()}/BINARY"),
                 "data_files": {
                     "BINARY": f"{self.project_dir}.img" # Reusing project dir for name
                 }
@@ -107,7 +107,7 @@ class DataHandlerFLUX(DataHandler):
             data = {
                 "type_id": "BINARY",
                 "processed_by": [],
-                "data_dir": self.ensureDir(f"{self.project_dir}/BINARY"),
+                "data_dir": self.ensureDir(f"{self.getPath()}/BINARY"),
                 "data_files": {
                     "BINARY": f"{self.project_dir}.{self.config_data["convert_output"]}" # Reusing project dir for name
                 }

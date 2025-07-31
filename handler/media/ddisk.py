@@ -39,7 +39,7 @@ class MediaHandlerDDisk(MediaHandler):
             "type_id": "BINARY",
             "processed_by": [],
             "done": False,
-            "data_dir":  self.ensureDir(f"{self.project_dir}/BINARY/{media_sample["name"]}"),
+            "data_dir":  self.ensureDir(f"{self.getPath()}/BINARY/{media_sample["name"]}"),
             "data_files": {
                 "BINARY": [f"{media_sample["name"]}.img"]
             }
@@ -77,7 +77,7 @@ class MediaHandlerDDisk(MediaHandler):
         """
         print("Ripping as generic disk with ddrescue")
         # Setup rip output path
-        self.setProjectDir(self.project_dir+"/"+media_sample["name"])
+        self.setProjectDir(media_sample["name"])
 
         # Rip and return data
         return [self.ripDD(media_sample)]

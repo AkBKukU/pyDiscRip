@@ -88,13 +88,13 @@ class MediaHandlerCD(MediaOptical):
         sessions = 1
         while sessions <= self.cd_sessions:
             print(f"Rip session: {sessions}")
-            print(f"Rip to: {self.project_dir}")
+            print(f"Rip to: {self.getPath()}")
             # Build data output
             data = {
                 "type_id": "BINCUE",
                 "processed_by": [],
                 "done": False,
-                "data_dir": self.ensureDir(f"{self.project_dir}/BINCUE/{media_sample["name"]}-S{sessions}"),
+                "data_dir": self.ensureDir(f"{self.getPath()}/BINCUE/{media_sample["name"]}-S{sessions}"),
                 "data_files": {
                     "BIN": f"{media_sample["name"]}-S{sessions}.bin",
                     "CUE": f"{media_sample["name"]}-S{sessions}.cue",
@@ -144,7 +144,7 @@ class MediaHandlerCD(MediaOptical):
         data = {
             "type_id": "MUSICBRAINZ",
             "processed_by": [],
-            "data_dir": self.ensureDir(f"{self.project_dir}/MUSICBRAINZ"),
+            "data_dir": self.ensureDir(f"{self.getPath()}/MUSICBRAINZ"),
             "data_files": {
                 "JSON": f"{media_sample["name"]}-musicbrainz.json"
             }
@@ -199,7 +199,7 @@ class MediaHandlerCD(MediaOptical):
         datas=[]
 
         # Setup rip output path
-        self.setProjectDir(self.project_dir+"/"+media_sample["name"])
+        self.setProjectDir(media_sample["name"])
         # Determine number of seesions to rip
         self.countSessions(media_sample)
         # Get metadata for audio CD

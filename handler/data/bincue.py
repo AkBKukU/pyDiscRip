@@ -38,7 +38,7 @@ class DataHandlerBINCUE(DataHandler):
         data_wav = {
             "type_id": "WAV",
             "processed_by": [],
-            "data_dir": self.ensureDir(f"{self.project_dir}/WAV/{data_in["data_files"]["BIN"].replace(".bin","")}"),
+            "data_dir": self.ensureDir(f"{self.getPath()}/WAV/{data_in["data_files"]["BIN"].replace(".bin","")}"),
             "data_files": {
                 "WAV": []
             }
@@ -48,7 +48,7 @@ class DataHandlerBINCUE(DataHandler):
         data_iso = {
             "type_id": "ISO9660",
             "processed_by": [],
-            "data_dir": self.ensureDir(f"{self.project_dir}/ISO9660/{data_in["data_files"]["BIN"].replace(".bin","")}"),
+            "data_dir": self.ensureDir(f"{self.getPath()}/ISO9660/{data_in["data_files"]["BIN"].replace(".bin","")}"),
             "data_files": {
                 "ISO": []
             }

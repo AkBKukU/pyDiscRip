@@ -41,7 +41,7 @@ class MediaHandlerDummy(MediaHandler):
             "type_id": "BINARY",
             "processed_by": [],
             "done": False,
-            "data_dir":  self.ensureDir(f"{self.project_dir}/BINARY/{media_sample["name"]}"),
+            "data_dir":  self.ensureDir(f"{self.getPath()}/BINARY/{media_sample["name"]}"),
             "data_files": {
                 "BINARY": [f"{media_sample["name"]}.img"]
             }
@@ -64,12 +64,6 @@ class MediaHandlerDummy(MediaHandler):
         # Return all generated data
         return data
 
-    def setProjectDir(self,project_dir="./"):
-        """Update project dir path
-
-        """
-        self.project_dir=project_dir
-
 
     def rip(self, media_sample):
         """Rip DVD with ddrescue
@@ -77,7 +71,7 @@ class MediaHandlerDummy(MediaHandler):
         """
         print("Creating dummy rip of /dev/random")
         # Setup rip output path
-        self.setProjectDir(self.project_dir+"/"+self.project_timestamp+"_"+media_sample["name"])
+        self.setProjectDir(self.project_timestamp+"_"+media_sample["name"])
 
         # Rip and return data
         return [self.ripDummy(media_sample)]

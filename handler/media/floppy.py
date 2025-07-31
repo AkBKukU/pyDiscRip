@@ -60,7 +60,7 @@ class MediaHandlerFloppy(MediaHandler):
                 "type_id": "FLUX",
                 "processed_by": [],
                 "done": False,
-                "data_dir": self.ensureDir(f"{self.project_dir}/FLUX"),
+                "data_dir": self.ensureDir(f"{self.getPath()}/FLUX"),
                 "data_files": {
                     "flux": f"track00.0.raw"
                 }
@@ -128,7 +128,7 @@ class MediaHandlerFloppy(MediaHandler):
         """
 
         # Setup rip output path
-        self.setProjectDir(self.project_dir+"/"+media_sample["name"])
+        self.setProjectDir(media_sample["name"])
 
         # Rip and return data
         return [self.ripToFlux(media_sample)]

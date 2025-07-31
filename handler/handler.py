@@ -24,8 +24,10 @@ class Handler(object):
 
         """
         self.type_id=None # TODO - Genericize media and data IDs
-        # Set directory to work in
-        self.project_dir="./"
+        # Set main directory to work in
+        self.output_dir="./"
+        # Set sub directory to work in
+        self.project_dir=""
         # Get current datetime
         self.project_timestamp=str(datetime.now().isoformat()).replace(":","-")
         # Data types output for later use
@@ -61,11 +63,24 @@ class Handler(object):
         """
         return re.sub("[\\/\\\\\\&:\\\"<>\*|]","-", unidecode.unidecode(filename_raw))
 
-    def setProjectDir(self,project_dir="./"):
+    def setProjectDir(self,project_dir=""):
         """Update project dir path
 
         """
-        self.project_dir=self.ensureDir(project_dir)
+        self.ensureDir(self.output_dir+"/"+project_dir)
+        self.project_dir=project_dir
+
+    def setOutputDir(self,output_dir="./"):
+        """Update project dir path
+
+        """
+        self.output_dir=self.ensureDir(output_dir)
+
+    def getPath(self):
+        """Update project dir path
+
+        """
+        return self.output_dir+"/"+self.project_dir+"/"
 
     def ensureDir(self,path):
         """Ensured that a path exists by attempting to create it or throwing an error
@@ -74,6 +89,7 @@ class Handler(object):
         try:
             if not os.path.exists(path):
                 os.makedirs(path)
+                print(f"{self.type_id} - Making directory: {path}")
         except Exception as e:
             print(f"Error making directory: {path}")
             sys.exit(1)
@@ -85,7 +101,7 @@ class Handler(object):
 
         """
         # Set filepath for status
-        status_path=self.ensureDir(f"{self.project_dir}/status")
+        status_path=self.ensureDir(f"{self.getPath()}/status")
 
         # Build filename
         if "type_id" in data:
@@ -106,7 +122,7 @@ class Handler(object):
 
         """
         # Set filepath for log
-        log_path=self.ensureDir(f"{self.project_dir}/log")
+        log_path=self.ensureDir(f"{self.getPath()}/log")
 
         # Build filename
         if json_output:
@@ -134,9 +150,9 @@ class Handler(object):
                 # Set all config values
                 self.config_data[key] = value
 
-        print("configure output")
+        print(f"{self.type_id} - configure output: {self.getPath()}")
         if config_data["settings"]["output"] != "":
-            self.setProjectDir(config_data["settings"]["output"]+"/"+self.project_dir)
+            self.setOutputDir(config_data["settings"]["output"])
 
 
     def configOptions(self):
@@ -164,7 +180,7 @@ class Handler(object):
         data = self.data_output_format
 
         # Create and set output dir
-        data["data_dir"]=self.ensureDir(self.project_dir+"/"+data["data_dir"])
+        data["data_dir"]=self.ensureDir(self.getPath()+"/"+data["data_dir"])
 
         # Format command
         cmd = self.virt_cmd.format(
@@ -187,7 +203,7 @@ class Handler(object):
         """
 
         # Setup rip output path
-        self.setProjectDir(self.project_dir+"/"+media_sample["name"])
+        self.setProjectDir(media_sample["name"])
 
         # Go through all data in media sample
         for data in media_sample["data"]:
