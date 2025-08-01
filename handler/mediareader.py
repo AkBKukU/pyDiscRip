@@ -204,8 +204,8 @@ class MediaReader(object):
                             # Mark sample done
                             media_sample["done"]=True
                             # write
-                            with open(f"{config_data["settings"]["watch"]}/{media_sample["name"]}.json", 'w', encoding="utf-8") as output:
-                                output.write(json.dumps(media_sample, indent=4))
+                            # with open(f"{config_data["settings"]["watch"]}/{media_sample["name"]}.json", 'w', encoding="utf-8") as output:
+                            #     output.write(json.dumps(media_sample, indent=4))
 
                             # Start rip
                             group["drive"][drive]["process"].start()
