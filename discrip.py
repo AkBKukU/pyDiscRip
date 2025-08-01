@@ -11,6 +11,7 @@ import csv
 import json
 import sys
 import os
+import shutil
 from pprint import pprint
 
 # External Modules
@@ -152,7 +153,7 @@ def main():
     parser.add_argument('-o', '--output', help="Directory to save data in", default="")
     parser.add_argument('-j', '--json-watch', help="Directory to watch for JSON sample files", default=None)
     parser.add_argument('-p', '--preserve-order', help="Maintain FIFO rip order for group ripping", action='store_true')
-    parser.add_argument('-w', '--web', help="Start web server", action='store_true')
+    parser.add_argument('-w', '--web', help="Start web server (Clears watch folder on launch)", action='store_true')
     parser.add_argument('-s', '--settings', help="Settings file for web", default=None)
     args = parser.parse_args()
 
@@ -265,6 +266,8 @@ def main():
         if args.json_watch is None:
             print("Must provide -j/--json-watch for rip watch folder")
             sys.exit(1)
+        else:
+            shutil.rmtree(args.json_watch)
         asyncio.run(startWeb(settings))
         sys.exit(0)
 
