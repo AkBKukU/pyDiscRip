@@ -14,6 +14,15 @@ from handler.handler import Handler
 
 class MediaReader(object):
 
+    def isGroup(drive_data,media_source):
+        # Check drive groups
+        for drive_cat, drives in drive_data.items():
+            for drive in drives:
+                # Add new groups
+                if drive["group"] == media_source:
+                    return True
+        return False
+
     def processState(pid,value=None):
         """Sets and stores PID state of a process as a dict in json to /tmp folder
 
@@ -115,15 +124,12 @@ class MediaReader(object):
 
         # Sample counter for media order preservation
         sample_counter=0
-        run_counter=0
 
         # Setup Watch dir
         Handler.ensureDir(None,config_data["settings"]["watch"])
 
         run=True # TODO - This should be controled by callback_update to be able to stop
         while(run):
-            print(f"Run Loop {run_counter}")
-            run_counter+=1
             # Load media samples from a directory of JSON files instead of passing
             sample_files = glob.glob(f"{config_data["settings"]["watch"]}/*.json")
             for sample_file in sample_files:
@@ -170,7 +176,7 @@ class MediaReader(object):
                             # Check if sample can be handled by group
                             if "drive" in media_sample and media_sample["drive"] == drive:
                                 print("Non-group Rip")
-                            elif media_sample["group"] != group_name:
+                            elif "group" not in media_sample or media_sample["group"] != group_name:
                                 continue
 
                             # Assign free drive to sample
@@ -197,6 +203,9 @@ class MediaReader(object):
                                 )
                             # Mark sample done
                             media_sample["done"]=True
+                            # write
+                            with open(f"{config_data["settings"]["watch"]}/{media_sample["name"]}.json", 'w', encoding="utf-8") as output:
+                                output.write(json.dumps(media_sample, indent=4))
 
                             # Start rip
                             group["drive"][drive]["process"].start()

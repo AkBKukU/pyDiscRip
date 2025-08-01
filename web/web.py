@@ -88,7 +88,10 @@ class WebInterface(object):
         media_sample={}
         media_sample["name"] = request.form['media_name']
         media_sample["media_type"] = request.form['media_type']
-        media_sample["group"] = request.form['media_drive']
+        if(MediaReader.isGroup(self.settings["drives"],request.form['media_drive'])):
+            media_sample["group"] = request.form['media_drive']
+        else:
+            media_sample["drive"] = request.form['media_drive']
         media_sample["description"] = request.form['media_description']
 
         with open(f"{self.settings["watch"]}/{media_sample["name"]}.json", 'w', encoding="utf-8") as output:
