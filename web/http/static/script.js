@@ -18,10 +18,11 @@ function buildOptionGroupList(data,id,name)
 	 <div>
 	 */
 	select = document.createElement("select");
-	select.attributes.name=name;
+	select.name=name;
 	select.id=id;
 	drivegroup = document.createElement("optgroup");
 	drivegroup.label="Groups";
+	groupcheck=[];
 	groups=false;
 	for (const [key, value] of Object.entries(data))
 	{
@@ -35,11 +36,16 @@ function buildOptionGroupList(data,id,name)
 			optgroup.appendChild(option);
 			if ("group" in value[i])
 			{
-				groups=true;
-				option = document.createElement("option");
-				option.value=value[i]["group"];
-				option.innerText=value[i]["group"];
-				drivegroup.appendChild(option);
+				if(!groupcheck.includes(value[i]["group"]))
+				{
+					groups=true;
+					option = document.createElement("option");
+					option.value=value[i]["group"];
+					option.innerText=value[i]["group"];
+					drivegroup.appendChild(option);
+
+					groupcheck.push(value[i]["group"]);
+				}
 			}
 		}
 		if(groups) select.appendChild(drivegroup);
@@ -53,7 +59,7 @@ function markerCustomAdd(event)
 	fetch('/settings.json').then((response) => response.json())
 	.then((data) =>
 		{
-			settings = data; document.getElementById('media_drive').replaceWith(buildOptionGroupList(settings["drives"],"media_type","media_type"));
+			settings = data; document.getElementById('media_drive').replaceWith(buildOptionGroupList(settings["drives"],"media_drive","media_drive"));
 		}
 	);
 }

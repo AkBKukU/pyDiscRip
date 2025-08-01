@@ -88,11 +88,14 @@ class WebInterface(object):
         media_sample={}
         media_sample["name"] = request.form['media_name']
         media_sample["media_type"] = request.form['media_type']
-        media_sample["drive"] = request.form['media_drive']
+        media_sample["group"] = request.form['media_drive']
         media_sample["description"] = request.form['media_description']
 
-        self.rip_thread = Process(target=MediaReader.rip,kwargs={"media_sample":media_sample,"config_data":{},"callback_update":self.media_sample_status})
-        self.rip_thread.start()
+        with open(f"{self.settings["watch"]}/{media_sample["name"]}.json", 'w', encoding="utf-8") as output:
+            output.write(json.dumps(media_sample, indent=4))
+
+        # self.rip_thread = Process(target=MediaReader.rip,kwargs={"media_sample":media_sample,"config_data":{},"callback_update":self.media_sample_status})
+        # self.rip_thread.start()
         return send_file(self.host_dir+"http/rip/index.html")
 
     def media_sample_status(self,media_sample):
@@ -114,10 +117,24 @@ class WebInterface(object):
             kwargs={
                 "host":self.host,
                 "port":self.port,
-                "debug":True
+                "debug":True,
+                "use_reloader":False
                 }
             )
         self.web_thread.start()
+
+        # Pass settings
+        config_data={}
+        config_data["settings"] = self.settings
+
+        self.rip_thread = Process(target=MediaReader.rip_queue_groups,
+            kwargs={
+                "media_samples":[],
+                "config_data":config_data,
+                "callback_update":None
+                }
+            )
+        self.rip_thread.start()
 
     def stop(self):
         """ Send SIGKILL and join thread to end Flask server """

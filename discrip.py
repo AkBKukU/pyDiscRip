@@ -100,6 +100,7 @@ server = None
 
 async def asyncLoop():
     """ Blocking main loop to provide time for async tasks to run"""
+    print('Blocking main loop')
     global loop_state
     while loop_state:
         await asyncio.sleep(1)
@@ -192,6 +193,12 @@ def main():
                         "drive": "/dev/random2",
                         "group":"dummy",
                         "type":"DUMMY"
+                    },
+                    {
+                        "name":"Random C",
+                        "drive": "/dev/random3",
+                        "group":"dummy",
+                        "type":"DUMMY"
                     }
                 ],
             },
@@ -214,10 +221,6 @@ def main():
     settings["output"]=args.output
     settings["fifo"]=args.preserve_order
 
-    # Run web server
-    if args.web:
-        asyncio.run(startWeb(settings))
-        sys.exit(0)
 
     # Dump config options and exit
     if args.configdump is not None:
@@ -234,10 +237,6 @@ def main():
         print("Media_Type,Drive,Name,Description")
         sys.exit(0)
 
-    # Read media samples to rip from CSV file
-    media_samples =[]
-    if args.csv is not None:
-        media_samples = rip_list_read(args.csv)
     # Load optional config file
     if args.config is not None:
         config_data = config_read(args.config)
@@ -247,14 +246,27 @@ def main():
     # Pass settings
     config_data["settings"] = settings
 
+    # Read media samples to rip from CSV file
+    media_samples =[]
+    if args.csv is not None:
+        media_samples = rip_list_read(args.csv)
+        MediaReader.rip_queue_drives(media_samples,config_data)
+        sys.exit(0)
+
     # Watch folder
     if args.json_watch is not None:
         settings["watch"]=args.json_watch
-        MediaReader.rip_queue_groups(media_samples,config_data)
-        sys.exit(0)
+        if not args.web:
+            MediaReader.rip_queue_groups(media_samples,config_data)
+            sys.exit(0)
 
-    MediaReader.rip_queue_drives(media_samples,config_data)
-    sys.exit(0)
+    # Run web server
+    if args.web:
+        if args.json_watch is None:
+            print("Must provide -j/--json-watch for rip watch folder")
+            sys.exit(1)
+        asyncio.run(startWeb(settings))
+        sys.exit(0)
 
     # Begin ripping all media samples provided
     rip_count = 1
@@ -268,4 +280,5 @@ def main():
 
 
 if __name__ == "__main__":
+    print("start")
     main()

@@ -115,12 +115,15 @@ class MediaReader(object):
 
         # Sample counter for media order preservation
         sample_counter=0
+        run_counter=0
 
         # Setup Watch dir
         Handler.ensureDir(None,config_data["settings"]["watch"])
 
         run=True # TODO - This should be controled by callback_update to be able to stop
         while(run):
+            print(f"Run Loop {run_counter}")
+            run_counter+=1
             # Load media samples from a directory of JSON files instead of passing
             sample_files = glob.glob(f"{config_data["settings"]["watch"]}/*.json")
             for sample_file in sample_files:
@@ -194,6 +197,7 @@ class MediaReader(object):
                                 )
                             # Mark sample done
                             media_sample["done"]=True
+
                             # Start rip
                             group["drive"][drive]["process"].start()
                             # Allow process moment to start because is_alive() is not instant
@@ -202,8 +206,8 @@ class MediaReader(object):
                             MediaReader.processState(group["drive"][drive]["process"].pid, {"is_alive":group["drive"][drive]["process"].is_alive()})
                             break
 
-                # Wait before checking for free drives
-                time.sleep(3)
+            # Wait before checking for free drives
+            time.sleep(3)
 
         # Wait for all processes to end
         for group, drives in groups.items():
