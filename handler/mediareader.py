@@ -174,7 +174,7 @@ class MediaReader(object):
                                 continue
 
                             # Check if sample can be handled by group
-                            if "drive" in media_sample and media_sample["drive"] == drive:
+                            if "group" not in media_sample and "drive" in media_sample and media_sample["drive"] == drive:
                                 print("Non-group Rip")
                             elif "group" not in media_sample or media_sample["group"] != group_name:
                                 continue
