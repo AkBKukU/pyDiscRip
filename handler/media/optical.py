@@ -33,7 +33,7 @@ class MediaOptical(MediaHandler):
         # Set media type to handle
         self.type_id="OPTICAL"
         # Default config data
-        self.config_data={}
+        self.config_data=None
         # Data types output
         self.data_outputs=[]
         self.cd_tracks=0

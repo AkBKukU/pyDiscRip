@@ -64,3 +64,34 @@ function markerCustomAdd(event)
 	);
 }
 window.addEventListener("load", markerCustomAdd);
+
+function objectToForm(data)
+{
+	// WARNING RECURSIVE
+	for (const [key, value] of Object.entries(data))
+	{
+		if(typeof value != object)
+		{
+			// Add Label with key
+			// Add input with name for value
+		}else{
+			// New fieldset
+			// Add Label with key
+
+			// Go deeper
+			objectToForm(value)
+		}
+
+	}
+}
+
+function loadConfigOptions(event)
+{
+	fetch('/config_data.json').then((response) => response.json())
+	.then((data) =>
+		{
+			objectToForm(data);
+		}
+	);
+}
+window.addEventListener("load", markerCustomAdd);

@@ -23,6 +23,13 @@ class MediaReader(object):
                     return True
         return False
 
+    def getConfigOptions():
+
+        media_manager = MediaHandlerManager()
+        data_manager = DataHandlerManager()
+
+        return media_manager.configDump() | data_manager.configDump()
+
     def processState(pid,value=None):
         """Sets and stores PID state of a process as a dict in json to /tmp folder
 

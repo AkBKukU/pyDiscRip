@@ -21,6 +21,8 @@ import signal
 
 # Internal Modules
 from handler.mediareader import MediaReader
+from handler.media.manager import MediaHandlerManager
+from handler.data.manager import DataHandlerManager
 
 
 def rip_list_read(filepath=None):
@@ -83,14 +85,9 @@ def config_dump(filename):
 
     """
 
-    media_manager = MediaHandlerManager()
-    data_manager = DataHandlerManager()
-
-    options = media_manager.configDump() | data_manager.configDump()
-
     # Save config data to JSON
     with open(filename, 'w') as f:
-        json.dump(options, f, indent=4)
+        json.dump(MediaReader.getConfigOptions(), f, indent=4)
 
 
 global loop_state

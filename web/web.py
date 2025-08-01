@@ -39,6 +39,7 @@ class WebInterface(object):
         # Define routes in class to use with flask
         self.app.add_url_rule('/','home', self.index)
         self.app.add_url_rule('/settings.json','settings_json', self.settings_json)
+        self.app.add_url_rule('/config_data.json','config_data_json', self.config_data_json)
         self.app.add_url_rule('/rip','rip', self.web_rip,methods=["POST"])
         self.app.add_url_rule('/output/<name>','rip_data', self.web_rip_data)
 
@@ -82,6 +83,10 @@ class WebInterface(object):
     def settings_json(self):
         """ Simple class function to send HTML to browser """
         return json.dumps(self.settings)
+
+    def config_data_json(self):
+        """ Simple class function to send HTML to browser """
+        return json.dumps(MediaReader.getConfigOptions())
 
     def web_rip(self):
         """ Simple class function to send HTML to browser """
