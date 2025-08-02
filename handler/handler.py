@@ -80,7 +80,7 @@ class Handler(object):
         """Update project dir path
 
         """
-        return self.output_dir+"/"+self.project_dir+"/"
+        return self.output_dir+"/"+self.project_dir
 
     def ensureDir(self,path):
         """Ensured that a path exists by attempting to create it or throwing an error

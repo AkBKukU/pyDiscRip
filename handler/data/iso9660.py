@@ -47,13 +47,15 @@ class DataHandlerISO9660(DataHandler):
                 }
             }
 
-            print(f"Working on: {iso}")
+            print(f"Working on: {iso} => {data["data_dir"]}")
 
             # Build 7z command to extract files
             cmd = f"7z -y x {data["data_dir"]}/{iso} -o{data_files["data_dir"]}"
 
             # Run command
-            self.osRun(cmd)
+            result = self.osRun(cmd)
+            self.log("7z_stdout",str(result.stdout.decode("utf-8")))
+            self.log("7z_stderr",str(result.stderr.decode("utf-8")))
 
             return [data_files]
 

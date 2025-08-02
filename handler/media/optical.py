@@ -65,5 +65,5 @@ class MediaOptical(MediaHandler):
         """Eject drive tray
         """
         d=cdio.Device(media_sample["drive"])
-        d.eject_media()
+        #d.eject_media()
         time.sleep(3)
