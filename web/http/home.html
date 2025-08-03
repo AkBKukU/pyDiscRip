@@ -1,7 +1,6 @@
 <html>
 
 <head>
-    <script type="text/javascript" src="static/script.js"> </script>
 	<link type="text/css" rel="stylesheet" href="static/style.css">
 </head>
 
@@ -39,7 +38,14 @@
                 <input type="text" name="media_description" placeholder="Media Description...">
             </div>
 
-            <div id="config_options"></div>
+            <feildset>
+                <legend>Config Options</legend>
+                <input type="button" id="config_download" value="Save Config" />
+                <label for="completeLoad">Load Completion</label>
+                <input style="display:none;" id="completeLoad" type="file" value="Load Completion">
+            <div id="config_options">
+            </div>
+            </feildset>
 
             <div class="input_pair">
                 <input type="submit" value="Start Rip" />
@@ -47,4 +53,5 @@
         </form>
     </fieldset>
 </body>
+    <script type="text/javascript" src="static/script.js"> </script>
 </html>

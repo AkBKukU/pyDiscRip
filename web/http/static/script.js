@@ -1,4 +1,5 @@
 var settings={};
+var default_config={}
 
 function buildOptionGroupList(data,id,name)
 {
@@ -67,11 +68,12 @@ window.addEventListener("load", markerCustomAdd);
 
 function objectToForm(data,id="object_form",prefix="")
 {
+	// WARNING RECURSIVE
+	console.log(data);
 	if (data == null) return null;
 
 	var options = document.createElement("div");
-	if (prefix == "" || prefix == null) options.id=id;
-	// WARNING RECURSIVE
+	if ((prefix == "" || prefix == null) && id != null) options.id=id;
 	for (const [key, value] of Object.entries(data))
 	{
 		if(value == null || typeof value != "object")
@@ -80,7 +82,7 @@ function objectToForm(data,id="object_form",prefix="")
 			if (prefix == null) continue;
 
 			var pair = document.createElement("div");
-			pair.classList.add("input_pair");
+			pair.classList.add("object_form_data");
 			// Add Label with key
 			var label = document.createElement("label");
 			label.innerText=key.substring(0,1).toUpperCase()+key.substring(1).toLowerCase();
@@ -95,15 +97,16 @@ function objectToForm(data,id="object_form",prefix="")
 			options.appendChild(pair);
 		}else{
 			// New fieldset
+			prefix_str = prefix == null ? "" : prefix+"|";
 
 			var fieldset = document.createElement("fieldset");
 			// Add legend with key
 			var legend = document.createElement("legend");
-			legend.id=prefix+"|"+key;
+			legend.id=prefix_str+key;
 			legend.innerText=key.substring(0,1).toUpperCase()+key.substring(1).toLowerCase();
 			fieldset.appendChild(legend);
 			// Go deeper
-			child=objectToForm(value,key);
+			child=objectToForm(value,null,prefix_str+key);
 			if (child != null) fieldset.appendChild(child);
 
 			options.appendChild(fieldset);
@@ -113,23 +116,43 @@ function objectToForm(data,id="object_form",prefix="")
 	return options;
 }
 // TODO - FormtoObject function to submit data. Also allows uploading json file instead. And user could save json file to reuse
-function formToObject(base)
+function formToObject(id)
 {
 	data={};
-	for (const child of base.children) {
-		console.log(child.tagName);
-		console.log(child.children.length);
+	// Get all inputs in form object from ID
+	sel="#"+id+" .object_form_data input";
+	base=document.querySelectorAll(sel);
+	// Handle each input
+	for (const child of base)
+	{
+		// If there is not data, skip
+		//if ( child.value == "") continue;
+
+		// Copy data refrence
+		walk=data;
+		// Get array of keys from ID
+		keys = child.id.split("|")
+		// Stor last key wh
+		lastkey=keys.pop();
+		for (const key of keys)
+		{
+			// insantiate new object if undefined(false)
+			walk[key] ||= {};
+			// Move walk refrence to lower key
+			walk = walk[key];
+		}
+		// Set final key to value
+		walk[lastkey] = child.value;
 	}
-
-
-	//download("form.json",JSON.stringify(saveData));
+	return data;
 }
 
 // Download
 function download(filename, text) {
+	data = JSON.stringify(formToObject('config_options'));
     var element = document.createElement('a');
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-    element.setAttribute('download', filename);
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data));
+    element.setAttribute('download', "config_data.json");
 
     element.style.display = 'none';
     document.body.appendChild(element);
@@ -138,16 +161,32 @@ function download(filename, text) {
 
     document.body.removeChild(element);
 }
+document.getElementById("config_download").addEventListener('click', download);
+
+// Download
+async function upload(filename, text) {
+
+    const [file] = document.getElementById("completeLoad").files;
+
+    if (file) {
+        loadData =  JSON.parse( await file.text() );
+
+		//data = { ...default_config, ...loadData };
+		form=document.getElementById('config_options');
+		form.replaceWith(objectToForm(loadData,'config_options',null));
+    }
+}
+document.getElementById("completeLoad").addEventListener('change', upload);
 
 function loadConfigOptions(event)
 {
 	fetch('/config_data.json').then((response) => response.json())
 	.then((data) =>
 		{
+			default_config = data;
 			form=document.getElementById('config_options')
 			form.replaceWith(objectToForm(data,'config_options',null));
 			form=document.getElementById('config_options')
-			formToObject(form);
 		}
 	);
 }

@@ -11,3 +11,14 @@
 {
 	float:right;
 }
+
+
+.object_form_data
+{
+	margin: 0.25em 0;
+}
+.object_form_data input,
+.object_form_data select
+{
+	float:right;
+}
