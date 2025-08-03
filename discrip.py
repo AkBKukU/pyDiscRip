@@ -204,20 +204,24 @@ def main():
                 "port": 5000,
                 "ip": "0.0.0.0"
             },
-            "output": "./",
+            "output": "",
             "watch": None,
-            "fifo": True
+            "fifo": False
         }
     if args.settings is not None:
         if args.settings == "":
             print(json.dumps(settings, indent=4))
+            sys.exit(0)
         else:
             settings = config_read(args.settings)
-        sys.exit(0)
 
     # Output folder
-    settings["output"]=args.output
-    settings["fifo"]=args.preserve_order
+    if args.output != "":
+        settings["output"]=args.output
+    if args.preserve_order:
+        settings["fifo"]=args.preserve_order
+    if args.json_watch is not None:
+        settings["watch"]=args.json_watch
 
 
     # Dump config options and exit
@@ -226,7 +230,7 @@ def main():
         sys.exit(0)
 
     # If CSV is none exit
-    if args.csv == None and args.json_watch is None:
+    if args.csv == None and settings["watch"] is None:
         parser.print_help()
         sys.exit(0)
 
@@ -252,8 +256,7 @@ def main():
         sys.exit(0)
 
     # Watch folder
-    if args.json_watch is not None:
-        settings["watch"]=args.json_watch
+    if settings["watch"] is not None:
         if not args.web:
             MediaReader.rip_queue_groups(media_samples,config_data)
             sys.exit(0)
@@ -280,5 +283,4 @@ def main():
 
 
 if __name__ == "__main__":
-    print("start")
     main()
