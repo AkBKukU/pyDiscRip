@@ -65,11 +65,12 @@ function markerCustomAdd(event)
 }
 window.addEventListener("load", markerCustomAdd);
 
-function objectToForm(data,prefix="")
+function objectToForm(data,id="object_form",prefix="")
 {
 	if (data == null) return null;
 
 	var options = document.createElement("div");
+	if (prefix == "" || prefix == null) options.id=id;
 	// WARNING RECURSIVE
 	for (const [key, value] of Object.entries(data))
 	{
@@ -112,13 +113,41 @@ function objectToForm(data,prefix="")
 	return options;
 }
 // TODO - FormtoObject function to submit data. Also allows uploading json file instead. And user could save json file to reuse
+function formToObject(base)
+{
+	data={};
+	for (const child of base.children) {
+		console.log(child.tagName);
+		console.log(child.children.length);
+	}
+
+
+	//download("form.json",JSON.stringify(saveData));
+}
+
+// Download
+function download(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+}
 
 function loadConfigOptions(event)
 {
 	fetch('/config_data.json').then((response) => response.json())
 	.then((data) =>
 		{
-			document.getElementById('config_options').replaceWith(objectToForm(data,null));
+			form=document.getElementById('config_options')
+			form.replaceWith(objectToForm(data,'config_options',null));
+			form=document.getElementById('config_options')
+			formToObject(form);
 		}
 	);
 }
