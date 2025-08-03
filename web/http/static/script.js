@@ -65,33 +65,61 @@ function markerCustomAdd(event)
 }
 window.addEventListener("load", markerCustomAdd);
 
-function objectToForm(data)
+function objectToForm(data,prefix="")
 {
+	if (data == null) return null;
+
+	var options = document.createElement("div");
 	// WARNING RECURSIVE
 	for (const [key, value] of Object.entries(data))
 	{
-		if(typeof value != object)
+		if(value == null || typeof value != "object")
 		{
+			// Option to skip top level unused settings
+			if (prefix == null) continue;
+
+			var pair = document.createElement("div");
+			pair.classList.add("input_pair");
 			// Add Label with key
+			var label = document.createElement("label");
+			label.innerText=key.substring(0,1).toUpperCase()+key.substring(1).toLowerCase();
+			label.htmlFor=prefix+"|"+key;
 			// Add input with name for value
+			var input = document.createElement("input");
+			input.name=prefix+"|"+key;
+			input.id=prefix+"|"+key;
+			input.value=value;
+			pair.appendChild(label);
+			pair.appendChild(input);
+			options.appendChild(pair);
 		}else{
 			// New fieldset
-			// Add Label with key
 
+			var fieldset = document.createElement("fieldset");
+			// Add legend with key
+			var legend = document.createElement("legend");
+			legend.id=prefix+"|"+key;
+			legend.innerText=key.substring(0,1).toUpperCase()+key.substring(1).toLowerCase();
+			fieldset.appendChild(legend);
 			// Go deeper
-			objectToForm(value)
+			child=objectToForm(value,key);
+			if (child != null) fieldset.appendChild(child);
+
+			options.appendChild(fieldset);
 		}
 
 	}
+	return options;
 }
+// TODO - FormtoObject function to submit data. Also allows uploading json file instead. And user could save json file to reuse
 
 function loadConfigOptions(event)
 {
 	fetch('/config_data.json').then((response) => response.json())
 	.then((data) =>
 		{
-			objectToForm(data);
+			document.getElementById('config_options').replaceWith(objectToForm(data,null));
 		}
 	);
 }
-window.addEventListener("load", markerCustomAdd);
+window.addEventListener("load", loadConfigOptions);

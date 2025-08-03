@@ -263,11 +263,11 @@ def main():
 
     # Run web server
     if args.web:
-        if args.json_watch is None:
-            print("Must provide -j/--json-watch for rip watch folder")
+        if settings["watch"] is None:
+            print("Must provide -j/--json-watch or settings file for rip watch folder")
             sys.exit(1)
         else:
-            shutil.rmtree(args.json_watch)
+            shutil.rmtree(settings["watch"])
         asyncio.run(startWeb(settings))
         sys.exit(0)
 

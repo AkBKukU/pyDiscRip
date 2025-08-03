@@ -146,8 +146,9 @@ class Handler(object):
         if self.type_id in config_data:
             # Iterate over all top level config values
             for key, value in config_data[self.type_id].items():
-                # Set all config values
-                self.config_data[key] = value
+                if value is not None:
+                    # Set all config values
+                    self.config_data[key] = value
 
         if config_data["settings"]["output"] != "":
             self.setOutputDir(config_data["settings"]["output"])
