@@ -5,11 +5,14 @@
 class jsonForm
 {
 
-constructor(dataSource=null, element=null,title="Form") {
-
+constructor(dataSource=null, element=null,title="Form",options=null)
+{
+	options ||= {"top_blank":false,"form_names":false};
 	this.element = element;
 	this.id = this.element.id;
 	this.title = title;
+	this.options = options;
+	this.textarea = null;
 	if (typeof dataSource == "object")
 	{
 		// Is data
@@ -52,21 +55,23 @@ objectToForm(data,title=null)
 	//             <input type="button" id="config_download" value="Save Config" />
 	var btn_save = document.createElement("input");
 	btn_save.type = "button";
-	btn_save.id = this.id+"_download"
-	btn_save.value = "Save Form Data"
+	btn_save.id = this.id+"_download";
+	btn_save.value = "Save Form Data";
 	btn_save.addEventListener('click', this.download.bind(this));
 
 	controls.append(btn_save);
 
 	var btn_file_upload = document.createElement("input");
 	btn_file_upload.type = "file";
-	btn_file_upload.id = this.id+"_file_upload"
+	btn_file_upload.id = this.id+"_file_upload";
 	btn_file_upload.addEventListener('change', this.upload.bind(this));
 	controls.append(btn_file_upload);
 
-
-	// <input type="file" id="selectedFile" style="display: none;" />
-	// <input type="button" value="Browse..." onclick="document.getElementById('selectedFile').click();" />
+	this.textarea = document.createElement("textarea");
+	this.textarea.name = this.id+"_json_data";
+	this.textarea.id = this.id+"_json_data";
+	this.textarea.style = "display:none;";
+	controls.append(this.textarea);
 
 	this.element.append(controls);
 }
@@ -86,7 +91,7 @@ objectHTML(data,prefix="")
 		if(value == null || typeof value != "object")
 		{
 			// Option to skip top level unused settings
-			if (prefix == null) continue;
+			if (prefix == null && this.options.top_blank) continue;
 
 			var pair = document.createElement("div");
 			pair.classList.add("object_form_data");
@@ -96,7 +101,8 @@ objectHTML(data,prefix="")
 			label.htmlFor=prefix+"|"+key;
 			// Add input with name for value
 			var input = document.createElement("input");
-			input.name=prefix+"|"+key;
+			if (this.options.form_names)
+				input.name=prefix+"|"+key;
 			input.id=prefix+"|"+key;
 			input.value=value;
 			pair.appendChild(label);
@@ -155,12 +161,37 @@ formToObject()
 	return data;
 }
 
+objectUpdate(base,update)
+{
+	// WARNING RECURSIVE
+
+	for (const [key, value] of Object.entries(update))
+	{
+		if(typeof value != "object")
+		{
+			try{
+				base[key] = value;
+			} catch (error) {
+				console.error(error);
+			}
+		}else{
+			base[key] = this.objectUpdate(base[key],value);
+		}
+	}
+	return base;
+}
+
+prepare()
+{
+	this.textarea.value = JSON.stringify(this.formToObject());
+}
+
 // Download
 download(filename, text) {
-	var data = JSON.stringify(this.formToObject());
+	this.prepare();
 
 	var element = document.createElement('a');
-	element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data));
+	element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(this.textarea.value));
 	element.setAttribute('download', "config_data.json");
 
 	element.style.display = 'none';
@@ -179,6 +210,7 @@ async upload(filename, text) {
 
     if (file) {
         var loadData =  JSON.parse( await file.text() );
+		loadData = this.objectUpdate(this.defaultData,loadData)
 
 		//data = { ...default_config, ...loadData };
 		var form=document.getElementById('config_options');
