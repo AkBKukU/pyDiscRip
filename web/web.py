@@ -98,12 +98,15 @@ class WebInterface(object):
         else:
             media_sample["drive"] = request.form['media_drive']
         media_sample["description"] = request.form['media_description']
+        media_sample["config_data"] = json.loads(request.form['config_options_json_data'])
+        #return pprint(request.form)
 
         with open(f"{self.settings["watch"]}/{media_sample["name"]}.json", 'w', encoding="utf-8") as output:
             output.write(json.dumps(media_sample, indent=4))
 
         # self.rip_thread = Process(target=MediaReader.rip,kwargs={"media_sample":media_sample,"config_data":{},"callback_update":self.media_sample_status})
         # self.rip_thread.start()
+        #return pprint(request.form)
         return send_file(self.host_dir+"http/rip/index.html")
 
     def media_sample_status(self,media_sample):

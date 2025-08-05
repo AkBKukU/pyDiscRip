@@ -196,6 +196,13 @@ class MediaReader(object):
                                     if data["order"] is not None and data["order"] < media_sample["id"]:
                                         before.append(group["drive"][driveb]["process"].pid)
 
+                            # Override Config data
+                            if "config_data" in media_sample:
+                                config_submit = media_sample["config_data"]
+                                config_submit["settings"] = config_data["settings"]
+                            else:
+                                config_submit = config_data
+
                             # Store media sample order
                             group["drive"][drive]["order"]=media_sample["id"]
                             # Configure rip
@@ -203,7 +210,7 @@ class MediaReader(object):
                                     target=MediaReader.rip_auto,
                                     kwargs={
                                         "media_sample":media_sample,
-                                        "config_data":config_data,
+                                        "config_data":config_submit,
                                         "callback_update":callback_update,
                                         "wait":before
                                     }
@@ -245,6 +252,8 @@ class MediaReader(object):
         # If a handler exists attempt to rip
         if media_handler is not None:
             # Setup config
+            print("Config options")
+            pprint(config_data)
             media_handler.config(config_data)
             # Rip media and store information about resulting data
             data_outputs = media_handler.rip(media_sample)

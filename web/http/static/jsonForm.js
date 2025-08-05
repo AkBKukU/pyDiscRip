@@ -1,6 +1,12 @@
 /* jsonForm
  *
  * Takes a json url or data object and creates a form out of named keys.
+ *
+ * call prepare() on your instance of this class before submititng the form to build the data.
+ *
+ * Example:
+ *  <form action="/submit" method="POST" onsubmit="jform.prepare();  return 1;">
+ *  Note: `return 1` could be client side input validation instead
  */
 class jsonForm
 {
@@ -156,7 +162,12 @@ formToObject()
 			walk = walk[key];
 		}
 		// Set final key to value
-		walk[lastkey] = child.value;
+		if (child.value == "")
+		{
+			walk[lastkey] = null;
+		}else{
+			walk[lastkey] = child.value;
+		}
 	}
 	return data;
 }

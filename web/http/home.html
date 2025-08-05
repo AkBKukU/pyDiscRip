@@ -7,7 +7,7 @@
 <body>
     <fieldset class="flexFill" id="media_sample_input">
         <legend>Media Sample</legend>
-        <form action="/rip" method="POST">
+        <form action="/rip" method="POST" onsubmit="jform.prepare();  return 1;">
 
             <div class="input_pair">
                 <label for="media_type">Type:</label>
@@ -38,14 +38,8 @@
                 <input type="text" name="media_description" placeholder="Media Description...">
             </div>
 
-            <feildset>
-                <legend>Config Options</legend>
-                <input type="button" id="config_download" value="Save Config" />
-                <label for="completeLoad">Load Completion</label>
-                <input style="display:none;" id="completeLoad" type="file" value="Load Completion">
             <div id="config_options">
             </div>
-            </feildset>
 
             <div class="input_pair">
                 <input type="submit" value="Start Rip" />
