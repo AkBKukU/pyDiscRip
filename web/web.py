@@ -42,6 +42,7 @@ class WebInterface(object):
         self.app.add_url_rule('/config_data.json','config_data_json', self.config_data_json)
         self.app.add_url_rule('/rip','rip', self.web_rip,methods=["POST"])
         self.app.add_url_rule('/output/<name>','rip_data', self.web_rip_data)
+        self.app.add_url_rule('/status/status.json','output_status_json', self.output_status_json)
 
 
         # Set headers for server
@@ -82,11 +83,11 @@ class WebInterface(object):
 
     def settings_json(self):
         """ Simple class function to send HTML to browser """
-        return json.dumps(self.settings)
+        return json.dumps(self.settings), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
     def config_data_json(self):
         """ Simple class function to send HTML to browser """
-        return json.dumps(MediaReader.getConfigOptions())
+        return json.dumps(MediaReader.getConfigOptions()), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
     def web_rip(self):
         """ Simple class function to send HTML to browser """
@@ -118,6 +119,26 @@ class WebInterface(object):
 
     def web_rip_data(self,name):
         return send_file(name+"/media_sample.json")
+
+    def output_status_json(self):
+        done = request.args.get('done')=="true"
+        outputs=[]
+        for root, dirs, files in os.walk(self.settings["output"]):
+            for output in dirs:
+
+                if os.path.exists(f"{self.settings["output"]}/{output}/status/status.json"):
+
+                    with open(f"{self.settings["output"]}/{output}/status/status.json", newline='') as jsonfile:
+                        status = json.load(jsonfile)
+                        print(f"done:{done}")
+                        if done is not None:
+                            if status["done"]==done:
+                                outputs.append(status)
+                        else:
+                            print(f" ignore done {status["done"]}")
+                            outputs.append(status)
+            return json.dumps(outputs), 200, {'Content-Type': 'application/json; charset=utf-8'}
+        return ""
 
 
 

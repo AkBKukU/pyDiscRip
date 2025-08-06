@@ -267,7 +267,8 @@ def main():
             print("Must provide -j/--json-watch or settings file for rip watch folder")
             sys.exit(1)
         else:
-            shutil.rmtree(settings["watch"])
+            if os.path.exists(settings["watch"]):
+                shutil.rmtree(settings["watch"])
         asyncio.run(startWeb(settings))
         sys.exit(0)
 
