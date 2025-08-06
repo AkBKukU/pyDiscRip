@@ -35,7 +35,7 @@ class DataHandlerHXCImage(DataHandler):
         # Default config data
         self.config_data={}
         # Data types output
-        self.data_outputs=["PNG"]
+        self.data_outputs=["IMAGE"]
 
 
     def convertData(self, data_in):
@@ -44,9 +44,9 @@ class DataHandlerHXCImage(DataHandler):
         """
 
         data = {
-            "type_id": "PNG",
+            "type_id": "IMAGE",
             "processed_by": [],
-            "data_dir": self.ensureDir(f"{self.getPath()}/PNG"),
+            "data_dir": self.ensureDir(f"{self.getPath()}/status"),
             "data_files": {
                 "PNG": f"flux_image.png" # Reusing project dir for name
             }
@@ -72,6 +72,7 @@ class DataHandlerHXCImage(DataHandler):
             img = Image(filename=f"{os.getcwd()}/{data["data_dir"]}/{data["data_files"]["PNG"]}.bmp")
             img.format = 'png'
             img.save(filename=f"{os.getcwd()}/{data["data_dir"]}/{data["data_files"]["PNG"]}")
+            os.remove(f"{os.getcwd()}/{data["data_dir"]}/{data["data_files"]["PNG"]}.bmp")
 
         # Return all generated data
         return [data]
