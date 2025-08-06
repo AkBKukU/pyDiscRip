@@ -24,6 +24,8 @@ class DataHandlerBINCUE(DataHandler):
         """
         # Call parent constructor
         super().__init__()
+        # Set handle ID
+        self.handle_id="DataHandlerBINCUE"
         # Set data type to handle
         self.type_id="BINCUE"
         # Data types output

@@ -26,6 +26,8 @@ class DataHandlerWAV(DataHandler):
         """
         # Call parent constructor
         super().__init__()
+        # Set handle ID
+        self.handle_id="DataHandlerWAV"
         # Set data type to handle
         self.type_id="WAV"
         # Data types output

@@ -28,6 +28,8 @@ class DataHandlerFLUX(DataHandler):
         """
         # Call parent constructor
         super().__init__()
+        # Set handle ID
+        self.handle_id="DataHandlerFLUX"
         # Set data type to handle
         self.type_id="FLUX"
         # Default config data
@@ -133,12 +135,10 @@ class DataHandlerFLUX(DataHandler):
             # Run the gw read process using arguments
             try:
                 # Use default diskdef
-                print("It's a me mario")
                 args = self.buildArgs(data_in, data)
                 res = main(args)
             except Exception as e:
                 # Use repo diskdef
-                print("L is real")
                 args = self.buildArgs(data_in, data,default_diskdef=False)
                 res = main(args)
 

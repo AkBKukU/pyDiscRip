@@ -252,8 +252,6 @@ class MediaReader(object):
         # If a handler exists attempt to rip
         if media_handler is not None:
             # Setup config
-            print("Config options")
-            pprint(config_data)
             media_handler.config(config_data)
             # Rip media and store information about resulting data
             data_outputs = media_handler.rip(media_sample)

@@ -23,6 +23,9 @@ class Handler(object):
         """Constructor to setup basic data and config defaults
 
         """
+        # Set handle ID
+        self.handle_id=None
+        # Set data type to handle
         self.type_id=None # TODO - Genericize media and data IDs
         # Set main directory to work in
         self.output_dir="./"
@@ -142,6 +145,7 @@ class Handler(object):
         """Set configuration data for handler by matching ID
 
         """
+
         # Check for config data for handler
         if self.type_id in config_data:
             # Iterate over all top level config values
@@ -216,7 +220,7 @@ class Handler(object):
 
                     if data_outputs is not None:
                         # Mark data as processed
-                        data["processed_by"].append(self.type_id)
+                        data["processed_by"].append(self.handle_id)
                         # Add new data to media sample
                         for data_new in data_outputs:
                             if data_new is not None:

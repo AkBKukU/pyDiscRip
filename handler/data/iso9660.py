@@ -23,6 +23,8 @@ class DataHandlerISO9660(DataHandler):
         """
         # Call parent constructor
         super().__init__()
+        # Set handle ID
+        self.handle_id="DataHandlerISO9660"
         # Set data type to handle
         self.type_id="ISO9660"
         # Data types output
