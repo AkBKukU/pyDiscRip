@@ -11,7 +11,7 @@
 class jsonForm
 {
 
-constructor(dataSource=null, element=null,title="Form",options=null)
+constructor(dataSource=null, element=null,title="Form",options=null,types=null)
 {
 	options ||= {"top_blank":false,"form_names":false};
 	this.element = element;
@@ -19,6 +19,7 @@ constructor(dataSource=null, element=null,title="Form",options=null)
 	this.title = title;
 	this.options = options;
 	this.textarea = null;
+	this.types = types;
 	if (typeof dataSource == "object")
 	{
 		// Is data
@@ -106,11 +107,25 @@ objectHTML(data,prefix="")
 			label.innerText=key.substring(0,1).toUpperCase()+key.substring(1).toLowerCase();
 			label.htmlFor=prefix+"|"+key;
 			// Add input with name for value
-			var input = document.createElement("input");
+			var elm = "input";
+			var type = "text";
+			if (this.types != null && prefix+"|"+key in this.types)
+			{
+				if(this.types[prefix+"|"+key] == "textarea")
+				{
+					elm = "textarea";
+					type=null;
+				}else{
+					type=this.types[prefix+"|"+key];
+				}
+			}
+
+			var input = document.createElement(elm);
 			if (this.options.form_names)
 				input.name=prefix+"|"+key;
 			input.id=prefix+"|"+key;
 			input.value=value;
+			if (type != null) input.type=type;
 			pair.appendChild(label);
 			pair.appendChild(input);
 			options.appendChild(pair);
@@ -140,7 +155,7 @@ formToObject()
 {
 	var data={};
 	// Get all inputs in form object from ID
-	var sel="#"+this.id+" .object_form_data input";
+	var sel="#"+this.id+" .object_form_data input, #"+this.id+" .object_form_data textarea";
 	var base=document.querySelectorAll(sel);
 	// Handle each input
 	for (const child of base)

@@ -110,7 +110,10 @@ class MediaHandlerFloppy(MediaHandler):
         # Don't re-rip Floppy
         if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["flux"]}"):
             # Run the gw read process using arguments
-            main(args)
+            try:
+                main(args)
+            except Exception as e:
+                print("GW FAIL - Possibly not connected?")
 
         data["done"]=True
         self.status(data)

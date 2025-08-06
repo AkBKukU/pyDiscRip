@@ -40,7 +40,8 @@ class DataHandlerFLUX(DataHandler):
                 "reverse": None,
                 "diskdefs": None,
                 "format": "ibm.1440"
-                }
+                },
+            "diskdefs-direct": None
         }
         # Data types output
         self.data_outputs=["BINARY"]
@@ -54,13 +55,20 @@ class DataHandlerFLUX(DataHandler):
         args.append("convert") # Not actually used but index position is needed
 
         # Process all config options to build parameters for gw module
-        if "diskdefs" in self.config_data["gw"] and self.config_data["gw"]["diskdefs"] is not None:
+        if "diskdefs-direct" in self.config_data and self.config_data["diskdefs-direct"] is not None:
+
+            with open(f"/tmp/discrip/{self.project_timestamp}_diskdefs.cfg", 'w', encoding="utf-8") as output:
+                output.write(self.config_data["diskdefs-direct"])
             args.append("--diskdefs")
-            args.append(str(self.config_data["gw"]["diskdefs"]))
+            args.append(f"/tmp/discrip/{self.project_timestamp}_diskdefs.cfg")
         else:
-            if not default_diskdef:
+            if "diskdefs" in self.config_data["gw"] and self.config_data["gw"]["diskdefs"] is not None:
                 args.append("--diskdefs")
-                args.append(os.path.realpath(__file__).replace(os.path.basename(__file__),"")+"/../../config/handler/flux/diskdefs.cfg")
+                args.append(str(self.config_data["gw"]["diskdefs"]))
+            else:
+                if not default_diskdef:
+                    args.append("--diskdefs")
+                    args.append(os.path.realpath(__file__).replace(os.path.basename(__file__),"")+"/../../config/handler/flux/diskdefs.cfg")
         if "format" in self.config_data["gw"] and self.config_data["gw"]["format"] is not None:
             args.append("--format")
             args.append(str(self.config_data["gw"]["format"]))

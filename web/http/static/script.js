@@ -67,4 +67,10 @@ function markerCustomAdd(event)
 window.addEventListener("load", markerCustomAdd);
 
 
-jform = new jsonForm('/config_data.json', document.getElementById('config_options'),'Config Options',{"top_blank":true,"form_names":false} )
+jform = new jsonForm(
+	'/config_data.json',
+	document.getElementById('config_options'),
+	'Config Options',
+	{"top_blank":true,"form_names":false},
+	{"FLUX|diskdefs-direct":"textarea"}
+)

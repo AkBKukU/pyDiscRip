@@ -17,6 +17,7 @@
 {
 	margin: 0.25em 0;
 }
+.object_form_data textarea,
 .object_form_data input,
 .object_form_data select
 {
