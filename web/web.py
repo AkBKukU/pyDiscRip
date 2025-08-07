@@ -41,8 +41,9 @@ class WebInterface(object):
         self.app.add_url_rule('/settings.json','settings_json', self.settings_json)
         self.app.add_url_rule('/config_data.json','config_data_json', self.config_data_json)
         self.app.add_url_rule('/rip','rip', self.web_rip,methods=["POST"])
-        self.app.add_url_rule('/output/<name>','rip_data', self.web_rip_data)
+        self.app.add_url_rule('/output/<path:name>','rip_data', self.web_rip_data)
         self.app.add_url_rule('/status/status.json','output_status_json', self.output_status_json)
+        self.app.add_url_rule('/status/file','settings_json', self.settings_json)
 
 
         # Set headers for server
@@ -118,7 +119,8 @@ class WebInterface(object):
             output.write(json.dumps(media_sample, indent=4))
 
     def web_rip_data(self,name):
-        return send_file(name+"/media_sample.json")
+        print(f"web_rip_data: {name}")
+        return send_file(f"{name}")
 
     def output_status_json(self):
         done = request.args.get('done')=="true"
@@ -130,7 +132,6 @@ class WebInterface(object):
 
                     with open(f"{self.settings["output"]}/{output}/status/status.json", newline='') as jsonfile:
                         status = json.load(jsonfile)
-                        print(f"done:{done}")
                         if done is not None:
                             if status["done"]==done:
                                 outputs.append(status)

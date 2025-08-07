@@ -5,6 +5,7 @@
 # Python System
 import os
 import json
+import glob
 from pathlib import Path
 import importlib
 from pprint import pprint
@@ -114,6 +115,15 @@ class MediaHandlerFloppy(MediaHandler):
                 main(args)
             except Exception as e:
                 print("GW FAIL - Possibly not connected?")
+
+        # Get flux files
+        fluxs = glob.glob(f"{data["data_dir"]}/*.raw")
+        # If FLACs were created add them to data output
+        if len(fluxs) > 0:
+            data["data_files"]["flux"]=[]
+            for flux in fluxs:
+                data["data_files"]["flux"].append(f"{flux.replace(data["data_dir"]+"/","")}")
+
 
         data["done"]=True
         self.status(data)

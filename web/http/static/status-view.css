@@ -1,0 +1,21 @@
+.status-view img
+{
+    max-width:200px;
+    max-height:200px;
+    height: auto;
+    width:auto;
+}
+
+.status-view h3,
+.status-view h4
+{
+    margin: 0px;
+}
+
+.status-view,
+.status-view td,
+.status-view th
+{
+    border: 1px solid #000;
+    border-spacing: 0px;
+}
