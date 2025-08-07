@@ -26,12 +26,13 @@ function mediaSampleView(media_sample)
 		{
 			if (data["type_id"]=="IMAGE")
 			{
-				img.src = data["data_dir"]+"/"+data["data_files"]["PNG"]
+				img.src = "/output/"+data["data_dir"]+"/"+data["data_files"]["PNG"]
 			}
 		}
 	}
 	td.appendChild(img);
 	tr.appendChild(td);
+	table.appendChild(tr);
 
 	// ROW2 - Description
 	tr = document.createElement("tr");
