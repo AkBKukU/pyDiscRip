@@ -90,13 +90,9 @@ function mediaSampleView(media_sample)
 		row_left=data_files_array.length;
 		for (const [key, value] of data_files_array)
 		{
-			// and specific file header
-			if ( data_files_array.length > 1)
-			{
 				td = document.createElement("td");
 				td.innerText=key;
 				tr.appendChild(td);
-			}
 
 			td = document.createElement("td");
 			if ( Array.isArray(value) )
