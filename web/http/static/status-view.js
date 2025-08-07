@@ -32,10 +32,8 @@ function mediaSampleView(media_sample)
 	}
 	td.appendChild(img);
 	tr.appendChild(td);
-	table.appendChild(tr);
 
 	// ROW2 - Description
-	tr = document.createElement("tr");
 	td = document.createElement("td");
 	td.innerText="Description";
 	tr.appendChild(td);
