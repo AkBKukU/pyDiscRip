@@ -98,11 +98,20 @@ function mediaSampleView(media_sample)
 			if ( Array.isArray(value) )
 			{
 				var ul = document.createElement("ul");
+				var limit=20;
 				for (const file of value)
 				{
 					var li = document.createElement("li");
 					li.innerText=file;
 					ul.appendChild(li);
+						limit-=1;
+						if(!limit)
+						{
+							var li = document.createElement("li");
+							li.innerText="...";
+							ul.appendChild(li);
+							break;
+						}
 				}
 				td.appendChild(ul);
 
@@ -110,17 +119,26 @@ function mediaSampleView(media_sample)
 				if(typeof value === "object")
 				{
 					var ul = document.createElement("ul");
+					var limit=20;
 					for (const [type, path] of Object.entries(value))
 					{
 						var li = document.createElement("li");
 						li.innerText=type+":"+path;
 						ul.appendChild(li);
+						limit-=1;
+						if(!limit)
+						{
+							var li = document.createElement("li");
+							li.innerText="...";
+							ul.appendChild(li);
+							break;
+						}
 					}
 					td.appendChild(ul);
 
 				}else if(typeof value === "string")
 				{
-					td.innerText=data["data_dir"]+"/"+data["data_files"];
+					td.innerText=data["data_dir"]+"/"+value;
 				}
 			}
 			tr.appendChild(td);
