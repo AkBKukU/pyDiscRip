@@ -9,6 +9,7 @@ import glob
 from pathlib import Path
 import importlib
 from pprint import pprint
+import time
 
 # External Modules
 # Directly imports from greaseweazle module in code
@@ -16,6 +17,7 @@ from pprint import pprint
 # Internal Modules
 from handler.media.media_handler import MediaHandler
 
+# from handler.controller.gw import ControllerGw
 
 class MediaHandlerFloppy(MediaHandler):
     """Handler for Floppy media types
@@ -40,6 +42,7 @@ class MediaHandlerFloppy(MediaHandler):
                 "hard-sectors": None,
                 "seek-retries": None,
                 "pll": None,
+                "device": None,
                 "densel": None,
                 "reverse": None
                 }
@@ -94,6 +97,9 @@ class MediaHandlerFloppy(MediaHandler):
         if "pll" in self.config_data["gw"] and self.config_data["gw"]["pll"] is not None:
             args.append("--pll")
             args.append(self.config_data["gw"]["pll"])
+        if "device" in self.config_data["gw"] and self.config_data["gw"]["device"] is not None:
+            args.append("--device")
+            args.append(self.config_data["gw"]["device"])
         if "densel" in self.config_data["gw"] and self.config_data["gw"]["densel"] is not None:
             args.append("--densel")
             args.append(self.config_data["gw"]["densel"])
@@ -146,3 +152,28 @@ class MediaHandlerFloppy(MediaHandler):
         # Rip and return data
         return [self.ripToFlux(media_sample)]
 
+
+    # def eject(self,media_sample):
+    #     """Eject drive tray
+    #     """
+    #     print(f"Please remove [{media_sample["name"]}] from [{media_sample["drive"]}]")
+    #     ControllerGw.unlock(media_sample["controller_id"])
+    #     time.sleep(1)
+    #
+    # def load(self,media_sample,bypass=False):
+    #     """Load media before continuing.
+    #
+    #     Default method call waits for user to press enter
+    #
+    #     Overload with automatic methods where possible.
+    #     """
+    #     while (ControllerGw.wait(media_sample["controller_id"])):
+    #          time.sleep(5)
+    #
+    #     ControllerGw.lock(media_sample["controller_id"])
+    #
+    #
+    #     if bypass:
+    #         # Allow skipping blocking to handle externally
+    #         return
+    #     input(f"Please load [{media_sample["name"]}] into [{media_sample["drive"]}]")

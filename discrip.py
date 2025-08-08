@@ -170,14 +170,17 @@ def main():
                         "name":"Floppy A",
                         "drive": "a",
                         "group":"3.5in",
-                        "type":"FLOPPY"
+                        "type":"FLOPPY",
+                        "controller_id":"gw1"
                     },
                     {
                         "name":"Floppy B",
                         "drive": "b",
                         "group":"5.25in",
-                        "type":"FLOPPY"
-                    }
+                        "type":"FLOPPY",
+                        "controller_id":"gw1"
+                    },
+
                 ],
                 "Dummy": [
                     {
