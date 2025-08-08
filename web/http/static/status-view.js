@@ -15,12 +15,13 @@ function mediaSampleView(media_sample)
 
 	table.appendChild(tr);
 
+
 	// ROW2 - Preview image
 	tr = document.createElement("tr");
 	var td = document.createElement("td");
 	td.rowSpan = 3;
 	var img = document.createElement("img");
-	if (media_sample["media_type"] == "FLOPPY")
+	if (media_sample["media_type"] == "FLOPPY" && !( media_sample["data"] === undefined))
 	{
 		for (const data of media_sample["data"])
 		{
@@ -38,7 +39,7 @@ function mediaSampleView(media_sample)
 	td.innerText="Description";
 	tr.appendChild(td);
 	td = document.createElement("td");
-	td.innerText=media_sample["name"];
+	td.innerText=media_sample["description"];
 	tr.appendChild(td);
 
 	table.appendChild(tr);
@@ -65,7 +66,36 @@ function mediaSampleView(media_sample)
 
 	table.appendChild(tr);
 
-	// ROW5 - Data Header
+	// ROW5 - Drive
+	if ("time_start" in media_sample)
+	{
+		tr = document.createElement("tr");
+		td = document.createElement("td");
+		td.innerText="Start";
+		tr.appendChild(td);
+		td = document.createElement("td");
+		td.innerText=media_sample["time_start"];
+		tr.appendChild(td);
+
+		table.appendChild(tr);
+	}
+
+	// ROW6- Drive
+	if ("time_end" in media_sample)
+	{
+		tr = document.createElement("tr");
+		td = document.createElement("td");
+		td.innerText="End";
+		tr.appendChild(td);
+		td = document.createElement("td");
+		td.innerText=media_sample["time_end"];
+		tr.appendChild(td);
+
+		table.appendChild(tr);
+	}
+
+	if ( media_sample["data"] === undefined) return table;
+	// ROW7 - Data Header
 	tr = document.createElement("tr");
 	var h4 = document.createElement("h4");
 	th = document.createElement("th");
@@ -76,7 +106,7 @@ function mediaSampleView(media_sample)
 
 	table.appendChild(tr);
 
-	// ROW5+N - Data Outputs
+	// ROW7+N - Data Outputs
 	for (const data of media_sample["data"])
 	{
 		tr = document.createElement("tr");
@@ -160,9 +190,10 @@ function mediaSampleView(media_sample)
 
 function loadStatus(event)
 {
-	fetch('/status/status.json?done=true').then((response) => response.json())
+	fetch('/status/status.json').then((response) => response.json())
 	.then((data) =>
 		{
+			document.getElementById("status").replaceChildren();
 			for (const media_sample of data)
 			{
 				table=mediaSampleView(media_sample);
@@ -170,6 +201,9 @@ function loadStatus(event)
 			}
 		}
 	);
+
+
+	setTimeout(loadStatus, 3000);
 }
 window.addEventListener("load", loadStatus);
 

@@ -89,7 +89,10 @@ class DataHandlerFLUX(DataHandler):
             args.append("--reverse")
 
         # Add the file input as parameter
-        args.append(f"{data_in["data_dir"]}/{data_in["data_files"]["flux"]}")
+        if isinstance(data_in["data_files"]["flux"], list):
+            args.append(f"{data_in["data_dir"]}/{data_in["data_files"]["flux"][0]}")
+        else:
+            args.append(f"{data_in["data_dir"]}/{data_in["data_files"]["flux"]}")
 
         # Add the file output as final parameter
         args.append(f"{data["data_dir"]}/{data["data_files"]["BINARY"]}")

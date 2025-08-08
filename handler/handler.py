@@ -103,7 +103,7 @@ class Handler(object):
 
         """
         # Set filepath for status
-        status_path=self.ensureDir(f"{self.getPath()}/status")
+        status_path=Handler.ensureDir(None,f"{self.getPath()}/status")
 
         # Build filename
         if "type_id" in data:

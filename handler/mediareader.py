@@ -11,6 +11,7 @@ import json
 from handler.media.manager import MediaHandlerManager
 from handler.data.manager import DataHandlerManager
 from handler.handler import Handler
+from datetime import datetime
 
 class MediaReader(object):
 
@@ -248,6 +249,9 @@ class MediaReader(object):
         # Get a media handler for this type of media_sample
         media_handler = media_manager.findMediaType(media_sample)
 
+        # Set rip start time
+        if "time_start" not in media_sample:
+            media_sample["time_start"] =  str(datetime.now().isoformat()).replace(":","-")
 
         # If a handler exists attempt to rip
         if media_handler is not None:
@@ -255,13 +259,14 @@ class MediaReader(object):
             media_handler.config(config_data)
             # Rip media and store information about resulting data
             data_outputs = media_handler.rip(media_sample)
-            # Post-rip status
-            media_handler.status(media_sample)
             # Add all data to the media object
             if data_outputs is not None:
                 media_sample["data"]=[]
                 for data in data_outputs:
                     media_sample["data"].append(data)
+
+                # Post-rip status
+                media_handler.status(media_sample)
 
                 # Begin processing data
                 MediaReader.convert_data(media_sample,config_data)
@@ -280,6 +285,9 @@ class MediaReader(object):
 
         # Set ending status
         media_sample["done"] = True
+        # Set rip start time
+        if "time_end" not in media_sample:
+            media_sample["time_end"] = str(datetime.now().isoformat()).replace(":","-")
         media_handler.status(media_sample)
 
 
