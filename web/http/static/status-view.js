@@ -168,7 +168,7 @@ function mediaSampleView(media_sample)
 
 				}else if(typeof value === "string")
 				{
-					td.innerText=data["data_dir"]+"/"+value;
+					td.innerText=value;
 				}
 			}
 			tr.appendChild(td);
