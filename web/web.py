@@ -125,6 +125,10 @@ class WebInterface(object):
     def output_status_json(self):
         done = request.args.get('done')=="true"
         outputs=[]
+        names=None
+        if (request.args.get('names') is not None):
+            names=json.dumps(request.args.get('names'))
+
         for root, dirs, files in os.walk(self.settings["output"]):
             for output in dirs:
 
@@ -132,12 +136,15 @@ class WebInterface(object):
 
                     with open(f"{self.settings["output"]}/{output}/status/status.json", newline='') as jsonfile:
                         status = json.load(jsonfile)
-                        if done is not None:
-                            if status["done"]==done:
-                                outputs.append(status)
-                        else:
-                            print(f" ignore done {status["done"]}")
-                            outputs.append(status)
+                        # Filter by status
+                        if request.args.get('done') is not None and status["done"] != done:
+                            continue
+                        # Filter by name
+                        if names is not None and status["name"] not in names:
+                            continue
+
+                        outputs.append(status)
+
             return json.dumps(outputs), 200, {'Content-Type': 'application/json; charset=utf-8'}
         return ""
 
