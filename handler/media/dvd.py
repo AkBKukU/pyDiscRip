@@ -9,9 +9,10 @@ from pathlib import Path
 
 # Internal Modules
 from handler.media.media_handler import MediaHandler
+from handler.media.optical import MediaOptical
 
 
-class MediaHandlerDVD(MediaHandler):
+class MediaHandlerDVD(MediaOptical):
     """Handler for DVD media types
 
     rips using a subprocess command to run `ddrescue` to create an ISO file
@@ -56,7 +57,10 @@ class MediaHandlerDVD(MediaHandler):
             cmd3 = f"ddrescue -b 2048 -d -R -r 3 -v \"{media_sample["drive"]}\" \"{data["data_dir"]}/{data["data_files"]["ISO"][0]}\" \"{data["data_dir"]}/mapfile\"  | tee -a ../$logs/dvd-ddrescue.log"
 
             # Run command
-            self.osRun(cmd1)
+            result = self.osRun(cmd1)
+            self.log("ddrescue_stdout",str(result.stdout))
+            self.log("ddrescue_stderr",str(result.stderr))
+
             self.osRun(cmd2)
             self.osRun(cmd3)
 

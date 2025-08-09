@@ -4,6 +4,7 @@
 
 # External Modules
 import pyudev
+import time
 from pprint import pprint
 
 # Internal Modules
@@ -114,19 +115,29 @@ class MediaHandlerManager(object):
         context = pyudev.Context()
 
         # Get info from device
-        # NOTE: Returns as list but we are accessing a specific device
-        for dev in context.list_devices(sys_name=drivepath.replace("/dev/","")):
+        output = True
+        while(output):
+            print("FIND A DISC TYPE")
+            #print(f"Drive path: {drivepath}")
+            # NOTE: Returns as list but we are accessing a specific device
+            devices = context.list_devices(sys_name=drivepath.replace("/dev/",""))
+            dev = next(iter(devices))
+
+            #print(f"Dat wot tell you the things drive do:")
+            #pprint(dict(dev.properties))
             #print(json.dumps(dict(dev.properties),indent=4))
             # Determine media type by ID
-            if "ID_CDROM_MEDIA_CD" in dev:
+            if dev.properties.get("ID_CDROM_MEDIA_CD", False):
                 media_type="CD"
-            elif "ID_CDROM_MEDIA_DVD" in dev:
+                output = False
+            elif dev.properties.get("ID_CDROM_MEDIA_DVD", False):
                 media_type="DVD"
+                output = False
                 print("Is DVD")
-            elif "ID_CDROM_MEDIA_BD" in dev:
+            elif dev.properties.get("ID_CDROM_MEDIA_BD", False):
                 media_type="BD"
-            else:
-                media_type=None
+            time.sleep(3)
 
         return media_type
+
 
