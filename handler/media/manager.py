@@ -86,6 +86,8 @@ class MediaHandlerManager(object):
                 return media_type
 
         # No handlers found
+        print(f"No handlers found for following media sample:")
+        pprint(media_sample)
         return None
 
 

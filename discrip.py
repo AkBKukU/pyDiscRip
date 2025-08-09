@@ -163,7 +163,6 @@ def main():
                         "drive":"/dev/sr0",
                         "group":"CD-DVD",
                         "type":"OPTICAL",
-                        "controller_id":"stacker"
                     }
                 ],
                 "Greaseweazle": [
