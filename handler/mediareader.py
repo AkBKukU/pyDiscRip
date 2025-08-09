@@ -131,7 +131,7 @@ class MediaReader(object):
         controllers={}
 
         controller_manager = ControllerHandlerManager()
-        if "controlers" in config_data["settings"]:
+        if "controllers" in config_data["settings"]:
             for config in config_data["settings"]["controlers"]:
                 controllers[config["id"]] = controller_manager.getController(config["controller_type"])
                 controllers[config["id"]].configDirect(config)
