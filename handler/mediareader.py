@@ -135,6 +135,7 @@ class MediaReader(object):
             for config in config_data["settings"]["controlers"]:
                 controllers[config["id"]] = controller_manager.getController(config["controller_type"])
                 controllers[config["id"]].configDirect(config)
+                controllers[config["id"]].initialize()
 
         # Get drive groups
         for drive_cat, drives in drive_data.items():
@@ -284,6 +285,7 @@ class MediaReader(object):
         """Determine media_sample type and start ripping
 
         """
+
         # Set starting status
         media_sample["done"] = False
 
@@ -313,8 +315,12 @@ class MediaReader(object):
                 media_handler.status(media_sample)
 
                 # Begin processing data
-                MediaReader.convert_data(media_sample,config_data)
-                media_handler.status(media_sample)
+                try:
+                    MediaReader.convert_data(media_sample,config_data)
+                    media_handler.status(media_sample)
+
+                except Exception as e:
+                    print("Conversion no worky")
 
                 # Run callback if provided
                 if callback_update is not None:

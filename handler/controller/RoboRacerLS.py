@@ -36,6 +36,7 @@ class ControllerRoboRacerLS(ControllerHandler):
         self.config_data={"serial_port":None}
         # Device commands
         self.cmd = {
+            "CLEAR":"\r\n",
             "ARM_UP":"!BNKPH94",
             "ARM_DOWN":"!BNKPG93",
             "DISC_DROP":"!BNKDP90"
@@ -47,15 +48,15 @@ class ControllerRoboRacerLS(ControllerHandler):
         try:
             # Arm up
             with serial.Serial(self.config_data["serial_port"],9600,timeout=1) as ser:
+                time.sleep(1)
+                ser.write( bytes(self.cmd["ARM_DOWN"],'ascii',errors='ignore') )
+                time.sleep(3)
                 ser.write( bytes(self.cmd["ARM_UP"],'ascii',errors='ignore') )
 
-            # Tray should be ejected
-            self.osRun(f"eject {drive}")
-
-            return True
+            return False
 
         except Exception as e:
-            print("EMERGENCY STOP - ERROR ROBO RACER")
+            print("EMERGENCY STOP - ERROR ROBO RACER INIT")
             sys.exit(1)
 
 

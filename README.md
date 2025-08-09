@@ -84,6 +84,10 @@ For floppy media reading you will also need the greaseweazle software installed.
 
     pip install git+https://github.com/keirf/greaseweazle@latest --force
 
+### FFMPEG
+
+    pip3 install ffmpeg-python
+
 ## Roadmap
 
 

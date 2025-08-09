@@ -34,7 +34,8 @@ class MediaHandlerCD(MediaOptical):
         self.type_id="CD"
         # Default config data
         self.config_data={
-            "cdrdao_driver":"generic-mmc-raw:0x20000"
+            "cdrdao_driver":"generic-mmc-raw:0x20000",
+            "paranoia_mode":"3",
         }
         # Data types output
         self.data_outputs=["BINCUE","MUSICBRAINZ"]
@@ -107,7 +108,7 @@ class MediaHandlerCD(MediaOptical):
             # Don't re-rip BIN/TOC
             if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["BIN"]}"):
                 # Build cdrdao command to read CD
-                cmd = f"cdrdao read-cd --read-raw --datafile \"{data["data_dir"]}/{data["data_files"]["BIN"]}\" --device \"{media_sample["drive"]}\" --session \"{sessions}\"  --driver {self.config_data["cdrdao_driver"]} \"{data["data_dir"]}/{data["data_files"]["TOC"]}\""
+                cmd = f"cdrdao read-cd --paranoia-mode {self.config_data["cdrdao_driver"]} --read-raw --datafile \"{data["data_dir"]}/{data["data_files"]["BIN"]}\" --device \"{media_sample["drive"]}\" --session \"{sessions}\"  --driver {self.config_data["cdrdao_driver"]} \"{data["data_dir"]}/{data["data_files"]["TOC"]}\""
 
                 # Log cdrdao command
                 self.log("cdrdao_cmd",cmd)
