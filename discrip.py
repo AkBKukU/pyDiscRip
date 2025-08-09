@@ -162,7 +162,8 @@ def main():
                         "name":"Laptop CD/DVD",
                         "drive":"/dev/sr0",
                         "group":"CD-DVD",
-                        "type":"OPTICAL"
+                        "type":"OPTICAL",
+                        "controller_id":"stacker"
                     }
                 ],
                 "Greaseweazle": [
@@ -178,7 +179,7 @@ def main():
                         "drive": "b",
                         "group":"5.25in",
                         "type":"FLOPPY",
-                        "controller_id":"gw1"
+                        "s":"gw1"
                     },
 
                 ],
@@ -203,6 +204,13 @@ def main():
                     }
                 ],
             },
+            "controlers":[
+                {
+                    "controller_type":"RoboRacerLS",
+                    "id": "stacker",
+                    "serial_port":"/dev/ttyUSB0"
+                }
+            ],
             "web" : {
                 "port": 5000,
                 "ip": "0.0.0.0"

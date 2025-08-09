@@ -12,7 +12,7 @@ from datetime import datetime
 from handler.handler import Handler
 
 
-class MediaHandler(Handler):
+class ControllerHandler(Handler):
     """Base class for Media Types to handle identification and ripping
 
     """
@@ -31,11 +31,15 @@ class MediaHandler(Handler):
         self.project_timestamp=str(datetime.now().isoformat()).replace(":","-")
         # Data types output for later use
         self.data_outputs=[]
-        # Set controller
-        self.controller=None
 
 
-    def mediaMatch(self, media_sample=None):
+    def controllerMatch(self, media_sample=None):
         """Check if the media sample should be handled by this type"""
-        return media_sample["media_type"] == self.type_id
+        return media_sample["controller_type"] == self.type_id
 
+
+    def load(self, drive):
+        return False
+
+    def eject(self, drive):
+        return False

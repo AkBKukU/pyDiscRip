@@ -157,6 +157,17 @@ class Handler(object):
         if config_data["settings"]["output"] != "":
             self.setOutputDir(config_data["settings"]["output"])
 
+    def configDirect(self, config_data):
+        """Set configuration data for handler by matching ID
+
+        """
+        print(f"ConfigureDirect: {self.type_id}")
+        # Iterate over all top level config values
+        for key, value in config_data.items():
+            if value is not None and key in self.config_data:
+                # Set all config values
+                self.config_data[key] = value
+
 
     def configOptions(self):
         """Return all configutation options"""

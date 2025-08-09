@@ -10,6 +10,7 @@ import json
 # Internal Modules
 from handler.media.manager import MediaHandlerManager
 from handler.data.manager import DataHandlerManager
+from handler.controller.manager import ControllerHandlerManager
 from handler.handler import Handler
 from datetime import datetime
 
@@ -112,6 +113,13 @@ class MediaReader(object):
         drive_data=config_data["settings"]["drives"]
         groups={}
         drive_process={}
+        controllers={}
+
+        controller_manager = ControllerHandlerManager()
+        if "controlers" in config_data["settings"]:
+            for config in config_data["settings"]["controlers"]:
+                controllers[config["id"]] = controller_manager.getController(config["controller_type"])
+                controllers[config["id"]].configDirect(config)
 
         # Get drive groups
         for drive_cat, drives in drive_data.items():
@@ -125,6 +133,9 @@ class MediaReader(object):
                 groups[drive["group"]]["drive"][drive["drive"]]={}
                 groups[drive["group"]]["drive"][drive["drive"]]["process"]=None
                 groups[drive["group"]]["drive"][drive["drive"]]["order"]=None
+                groups[drive["group"]]["drive"][drive["drive"]]["controller"]=None
+                if "controller_id" in drive:
+                    groups[drive["group"]]["drive"][drive["drive"]]["controller"]=drive["controller_id"]
 
         # List out groups
         print("Found Drive Groups:")
@@ -204,6 +215,15 @@ class MediaReader(object):
                             else:
                                 config_submit = config_data
 
+                            # Get controller
+                            if group["drive"][drive]["controller"] is not None:
+                                controller = controllers[group["drive"][drive]["controller"]]
+                                print(f"controller: {controller.type_id}")
+                            else:
+                                print("CONTROLLER NOT FOUND")
+                                pprint(controllers)
+                                controller = None
+
                             # Store media sample order
                             group["drive"][drive]["order"]=media_sample["id"]
                             # Configure rip
@@ -213,7 +233,8 @@ class MediaReader(object):
                                         "media_sample":media_sample,
                                         "config_data":config_submit,
                                         "callback_update":callback_update,
-                                        "wait":before
+                                        "wait":before,
+                                        "controller": controller
                                     }
                                 )
                             # Mark sample done
@@ -236,7 +257,7 @@ class MediaReader(object):
                 process["process"].join()
 
 
-    def rip(media_sample,config_data,callback_update=None):
+    def rip(media_sample,config_data,callback_update=None,controller=None):
         """Determine media_sample type and start ripping
 
         """
@@ -291,7 +312,7 @@ class MediaReader(object):
         media_handler.status(media_sample)
 
 
-    def rip_auto(media_sample,config_data,callback_update=None,wait=None):
+    def rip_auto(media_sample,config_data,callback_update=None,wait=None,controller=None):
         """ Attempt to automatically manage ripping process for samples
 
         """
@@ -300,13 +321,17 @@ class MediaReader(object):
         media_manager = MediaHandlerManager()
 
         # Load media with bypass for blocking actions where possible
-        media_manager.loadMediaType(media_sample,bypass=True)
+        media_manager.loadMediaType(media_sample,True,controller)
 
         # Get a media handler for this type of media_sample
+        pprint(media_sample)
         media_handler = media_manager.findMediaType(media_sample)
 
+        # Set controller
+        media_handler.controller = controller
+
         # Rip
-        MediaReader.rip(media_sample,config_data,callback_update)
+        MediaReader.rip(media_sample,config_data,callback_update,controller)
 
         # Wait for preeceding processes to keep media output order same
         if wait is not None:

@@ -46,6 +46,11 @@ class MediaOptical(MediaHandler):
 
         Overload with automatic methods where possible.
         """
+        if self.controller is not None:
+            if self.controller.load(media_sample["drive"]):
+                return
+
+
         print(f"Please insert [{media_sample["name"]}] into [{media_sample["drive"]}]")
         wait_load=0
         while(True):
@@ -64,6 +69,9 @@ class MediaOptical(MediaHandler):
     def eject(self,media_sample):
         """Eject drive tray
         """
+        if self.controller is not None:
+            if self.controller.eject(media_sample["drive"]):
+                return
         d=cdio.Device(media_sample["drive"])
         #d.eject_media()
         time.sleep(3)
