@@ -43,8 +43,12 @@ class WebInterface(object):
         self.app.add_url_rule('/rip','rip', self.web_rip,methods=["POST"])
         self.app.add_url_rule('/output/<path:name>','rip_data', self.web_rip_data)
         self.app.add_url_rule('/status/status.json','output_status_json', self.output_status_json)
+        self.app.add_url_rule('/status/drive_status.json','drive_status_json', self.drive_status_json)
         self.app.add_url_rule('/status/file','settings_json', self.settings_json)
+        self.app.add_url_rule('/update','update', self.update,methods=["POST"])
 
+        # Callback data
+        self.drive_status=None
 
         # Set headers for server
         self.app.after_request(self.add_header)
@@ -111,6 +115,18 @@ class WebInterface(object):
         #return pprint(request.form)
         return send_file(self.host_dir+"http/rip/index.html")
 
+    def update(self):
+        """ Simple class function to send HTML to browser """
+
+        print("Updating API")
+        pprint(request.form)
+        if "drive_status" in request.form:
+            print("Updating drive status")
+            pprint(request.form["drive_status"])
+            self.drive_status = json.loads(request.form["drive_status"])
+
+        return "thx"
+
     def media_sample_status(self,media_sample):
         filepath=media_sample["name"]+"/media_sample.json"
         print(f"writing: {filepath}")
@@ -148,6 +164,20 @@ class WebInterface(object):
             return json.dumps(outputs), 200, {'Content-Type': 'application/json; charset=utf-8'}
         return ""
 
+    def drive_status_json(self):
+        """ Simple class function to send HTML to browser """
+        print("sending drive status")
+        pprint(self.drive_status)
+        return json.dumps(self.drive_status), 200, {'Content-Type': 'application/json; charset=utf-8'}
+
+
+    def callback_update(self,data):
+        if "drive_status" in data:
+            print("Updating drive status")
+            pprint(data["drive_status"])
+            self.drive_status = data["drive_status"]
+
+        return None
 
 
     async def start(self):
@@ -171,7 +201,7 @@ class WebInterface(object):
             kwargs={
                 "media_samples":[],
                 "config_data":config_data,
-                "callback_update":None
+                "callback_update":self.callback_update
                 }
             )
         self.rip_thread.start()

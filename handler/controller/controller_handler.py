@@ -38,6 +38,11 @@ class ControllerHandler(Handler):
         return media_sample["controller_type"] == self.type_id
 
 
+    def load_hold(self,callback=None,callback_arg=None):
+        if callback is not None:
+            while callback(callback_arg):
+                time.sleep(5)
+
     def load(self, drive):
         return False
 

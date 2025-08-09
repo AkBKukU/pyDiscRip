@@ -6,6 +6,7 @@ import time
 import subprocess
 import glob
 import json
+from urllib import request, parse
 
 # Internal Modules
 from handler.media.manager import MediaHandlerManager
@@ -15,6 +16,8 @@ from handler.handler import Handler
 from datetime import datetime
 
 class MediaReader(object):
+
+    drive_status={}
 
     def isGroup(drive_data,media_source):
         # Check drive groups
@@ -103,6 +106,17 @@ class MediaReader(object):
         for key, value in drive_process.items():
             value.join()
 
+    def web_update(data, config_data):
+
+        # Post Method is invoked if data != None
+        endpoint=f"http://{config_data["settings"]["web"]["ip"]}:{config_data["settings"]["web"]["port"]}/update"
+        print(endpoint)
+        data=json.dumps(data).encode("utf-8")
+        print(f"data: {data}")
+        req =  request.Request(endpoint, data=data)
+
+        # Response
+        resp = request.urlopen(req)
 
     def rip_queue_groups(media_samples,config_data,callback_update=None):
         """ Live ripping with drive groups. Uses folder of JSON for input of samples
@@ -113,6 +127,7 @@ class MediaReader(object):
         drive_data=config_data["settings"]["drives"]
         groups={}
         drive_process={}
+        MediaReader.drive_status={}
         controllers={}
 
         controller_manager = ControllerHandlerManager()
@@ -124,6 +139,12 @@ class MediaReader(object):
         # Get drive groups
         for drive_cat, drives in drive_data.items():
             for drive in drives:
+                # Build drive status
+                MediaReader.drive_status[drive["drive"]]={
+                        "name":drive["name"],
+                        "status":0 # 0 = free, 1 = ripping, 2 = auto loading, 3 = manual load needed
+                    }
+
                 # Add new groups
                 if drive["group"] not in groups:
                     groups[drive["group"]]={}
@@ -136,6 +157,8 @@ class MediaReader(object):
                 groups[drive["group"]]["drive"][drive["drive"]]["controller"]=None
                 if "controller_id" in drive:
                     groups[drive["group"]]["drive"][drive["drive"]]["controller"]=drive["controller_id"]
+
+        MediaReader.web_update({"drive_status":MediaReader.drive_status},config_data)
 
         # List out groups
         print("Found Drive Groups:")

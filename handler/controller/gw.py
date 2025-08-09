@@ -37,6 +37,4 @@ class ControllerGw(object):
         # Data types output
         self.data_outputs=[]
         self.cd_tracks=0
-
-    def wait(self):
         return
