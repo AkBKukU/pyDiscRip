@@ -3,7 +3,7 @@
 # CD ripping module for pyDiscRip. Can be used to rip a CD and fetch metadata
 
 # Python System
-import os
+import os, sys
 import json
 from pathlib import Path
 import time
@@ -14,6 +14,7 @@ from urllib import request, parse
 try:
     import libdiscid
 except Exception as e:
+        print("Need to install libdiscid systen package for [libdiscid]")
         print("Need to install Python module [python-libdiscid]")
         sys.exit(1)
 try:
