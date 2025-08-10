@@ -3,9 +3,13 @@
 # Media ripping manager for pyDiscRip. Can be used to rip a CD and fetch metadata
 
 # External Modules
-import pyudev
-import time
+import time, sys
 from pprint import pprint
+try:
+    import pyudev
+except Exception as e:
+        print("Need to install Python module [pyudev]")
+        sys.exit(1)
 
 # Internal Modules
 from handler.media.optical import MediaOptical
