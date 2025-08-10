@@ -52,7 +52,13 @@ class DataHandlerISO9660(DataHandler):
             print(f"Working on: {iso} => {data["data_dir"]}")
 
             # Build 7z command to extract files
-            cmd = f"7z -y x {data["data_dir"]}/{iso} -o{data_files["data_dir"]}"
+            cmd = [
+                "7z",
+                "-y",
+                "x",
+                f"{data["data_dir"]}/{iso}",
+                f"-o{data_files["data_dir"]}"
+            ]
 
             # Run command
             result = self.osRun(cmd)

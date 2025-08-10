@@ -168,7 +168,10 @@ class Handler(object):
             if json_output:
                 output.write(json.dumps(text, indent=4))
             else:
-                output.write(text)
+                if isinstance(text, (bytes, bytearray)):
+                    output.write(str(text.decode("utf-8")))
+                else:
+                    output.write(str(text))
 
         return
 
@@ -213,7 +216,10 @@ class Handler(object):
         """Runs a command at the OS level and returns stdout and stderr"""
         try:
             # Run command and store output
-            result = subprocess.run([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # stack = ''.join(traceback.format_stack())
+            # self.log("stack",str(stack))
+            self.log(cmd[0],' '.join(cmd))
+            result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             return result
 
@@ -231,6 +237,8 @@ class Handler(object):
         data["data_dir"]=self.ensureDir(self.getPath()+"/"+data["data_dir"])
 
         # Format command
+        print("Closed until further notice")
+        sys.exit(1)
         cmd = self.virt_cmd.format(
             input_file=data_in["data_dir"]+"/"+data_in["data_files"]["BINARY"],
             data_dir=data["data_dir"]

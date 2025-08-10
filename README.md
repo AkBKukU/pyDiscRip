@@ -78,7 +78,7 @@ Some features of this software require the usage of system level program executi
 
 You will need the following system packages:
 
-    cdrdao bchunk ddrescue 7z ibdiscid-dev python-dev-is-python3 libcdio-dev libiso9660-dev swig pkg-config
+    cdrdao bchunk ddrescue 7z ibdiscid-dev python-dev-is-python3 libcdio-dev libiso9660-dev swig pkg-config libcdio-utils
 
 
 ### pip

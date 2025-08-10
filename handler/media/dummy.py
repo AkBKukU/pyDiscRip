@@ -52,7 +52,13 @@ class MediaHandlerDummy(MediaHandler):
         # if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["BINARY"][0]}"):
         count=str(int(random.random()*100))
         # ddrescue is a multi step process that is run three times
-        cmd1 = f"dd bs=8M count={count} if=/dev/random of=\"{data["data_dir"]}/{data["data_files"]["BINARY"][0]}\" "
+        cmd1 = [
+            "dd",
+            "bs=8M",
+            "count={count}",
+            "if=/dev/random",
+            f"of={data["data_dir"]}/{data["data_files"]["BINARY"][0]}"
+        ]
 
         # Run command
         result = self.osRun(cmd1)

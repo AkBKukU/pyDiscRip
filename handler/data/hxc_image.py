@@ -58,7 +58,13 @@ class DataHandlerHXCImage(DataHandler):
         if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["PNG"]}"):
             script=os.path.realpath(__file__).replace(os.path.basename(__file__),"")+"/../../config/handler/hxc_image/config.script"
             # Build hxcfe command
-            cmd = f"hxcfe -script:\"{script}\" -finput:\"{os.getcwd()}/{data_in["data_dir"]}/{data_in["data_files"]["flux"][0]}\" -foutput:\"{os.getcwd()}/{data["data_dir"]}/{data["data_files"]["PNG"]}.bmp\" -conv:BMP_DISK_IMAGE"
+            cmd = [
+                "hxcfe",
+                f"-script:{script}",
+                f"-finput:{os.getcwd()}/{data_in["data_dir"]}/{data_in["data_files"]["flux"][0]}",
+                f"-foutput:{os.getcwd()}/{data["data_dir"]}/{data["data_files"]["PNG"]}.bmp",
+                "-conv:BMP_DISK_IMAGE"
+                ]
 
             # Run command
             print("run Make image")

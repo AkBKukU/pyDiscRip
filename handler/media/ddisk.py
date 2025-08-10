@@ -50,9 +50,41 @@ class MediaHandlerDDisk(MediaHandler):
         # if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["BINARY"][0]}"):
 
         # ddrescue is a multi step process that is run three times
-        cmd1 = f"ddrescue -b 2048 -n -v \"{media_sample["drive"]}\" \"{data["data_dir"]}/{data["data_files"]["BINARY"][0]}\" \"{data["data_dir"]}/mapfile\"  | tee -a ../$logs/dvd-ddrescue.log"
-        cmd2 = f"ddrescue -b 2048 -d -r 3 -v \"{media_sample["drive"]}\" \"{data["data_dir"]}/{data["data_files"]["BINARY"][0]}\" \"{data["data_dir"]}/mapfile\"  | tee -a ../$logs/dvd-ddrescue.log"
-        cmd3 = f"ddrescue -b 2048 -d -R -r 3 -v \"{media_sample["drive"]}\" \"{data["data_dir"]}/{data["data_files"]["BINARY"][0]}\" \"{data["data_dir"]}/mapfile\"  | tee -a ../$logs/dvd-ddrescue.log"
+        cmd1 = [
+            "ddrescue",
+            "-b",
+            "2048",
+            "-n",
+            "-v",
+            f"{media_sample["drive"]}",
+            f"{data["data_dir"]}/{data["data_files"]["BINARY"][0]}",
+            f"{data["data_dir"]}/mapfile"
+        ]
+        cmd2 = [
+            "ddrescue",
+            "-b",
+            "2048",
+            "-d",
+            "-r",
+            "3",
+            "-v",
+            f"{media_sample["drive"]}",
+            f"{data["data_dir"]}/{data["data_files"]["BINARY"][0]}",
+            f"{data["data_dir"]}/mapfile"
+        ]
+        cmd3 = [
+            "ddrescue",
+            "-b",
+            "2048",
+            "-d",
+            "-R",
+            "-r",
+            "3",
+            "-v",
+            f"{media_sample["drive"]}",
+            f"{data["data_dir"]}/{data["data_files"]["BINARY"][0]}",
+            f"{data["data_dir"]}/mapfile"
+        ]
 
         # Run command
         result = self.osRun(cmd1)

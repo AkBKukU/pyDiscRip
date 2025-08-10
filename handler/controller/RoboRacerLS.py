@@ -69,7 +69,7 @@ class ControllerRoboRacerLS(ControllerHandler):
                 time.sleep(0.5)
 
             # Tray should be ejected
-            self.osRun(f"eject {drive}")
+            self.osRun(["eject", f"{drive}"])
             time.sleep(5)
 
             # Drop disc
@@ -78,7 +78,7 @@ class ControllerRoboRacerLS(ControllerHandler):
                 time.sleep(5)
 
             # Close tray
-            self.osRun(f"eject -t {drive}")
+            self.osRun(["eject","-t", f"{drive}"])
             time.sleep(10)
 
             return False
@@ -96,7 +96,7 @@ class ControllerRoboRacerLS(ControllerHandler):
                 time.sleep(5)
 
             # Tray should be ejected
-            self.osRun(f"eject {drive}")
+            self.osRun(["eject", f"{drive}"])
             time.sleep(5)
 
             return True

@@ -70,7 +70,7 @@ class MediaHandlerCD(MediaOptical):
 # Appendable           : no
 
         # Run command
-        result =  self.osRun(f"cdrdao disk-info --device {media_sample["drive"]}")
+        result = self.osRun(["cdrdao", "disk-info", "--device", f"{media_sample["drive"]}"])
 
         # Parse output to find session count
         self.log("cdrdao-disk-info",result.stdout.decode("utf-8"))
@@ -108,10 +108,22 @@ class MediaHandlerCD(MediaOptical):
             # Don't re-rip BIN/TOC
             if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["BIN"]}"):
                 # Build cdrdao command to read CD
-                cmd = f"cdrdao read-cd --paranoia-mode {self.config_data["cdrdao_driver"]} --read-raw --datafile \"{data["data_dir"]}/{data["data_files"]["BIN"]}\" --device \"{media_sample["drive"]}\" --session \"{sessions}\"  --driver {self.config_data["cdrdao_driver"]} \"{data["data_dir"]}/{data["data_files"]["TOC"]}\""
-
-                # Log cdrdao command
-                self.log("cdrdao_cmd",cmd)
+                cmd = [
+                    "cdrdao",
+                    "read-cd",
+                    "--paranoia-mode",
+                    f"{self.config_data["cdrdao_driver"]}",
+                    "--read-raw",
+                    "--datafile",
+                    f"{data["data_dir"]}/{data["data_files"]["BIN"]}",
+                    "--device",
+                    f"{media_sample["drive"]}",
+                    "--session",
+                    f"{sessions}",
+                    "--driver",
+                    f"{self.config_data["cdrdao_driver"]}",
+                    f"{data["data_dir"]}/{data["data_files"]["TOC"]}",
+                ]
 
                 # Run command
                 self.osRun(cmd)
@@ -120,7 +132,11 @@ class MediaHandlerCD(MediaOptical):
             # Don't re-convert CUE
             if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["CUE"]}"):
                 # Build toc2cue command to generate CUE
-                cmd = f"toc2cue \"{data["data_dir"]}/{data["data_files"]["TOC"]}\" \"{data["data_dir"]}/{data["data_files"]["CUE"]}\""
+                cmd = [
+                    "toc2cue",
+                    f"{data["data_dir"]}/{data["data_files"]["TOC"]}",
+                    f"{data["data_dir"]}/{data["data_files"]["CUE"]}"
+                ]
 
                 # Run command
                 result = self.osRun(cmd)
@@ -210,6 +226,11 @@ class MediaHandlerCD(MediaOptical):
         # Add metadata if was found
         if data_output is not None:
                 datas.append(data_output)
+
+        # cd-info log
+        result = self.osRun(["cd-info", f"{media_sample["drive"]}"])
+        self.log("cd-info_stdout",str(result.stdout))
+        self.log("cd-info_stderr",str(result.stderr))
 
         # Rip all sessions on CD
         data_outputs = self.ripBinCue(media_sample)

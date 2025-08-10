@@ -63,10 +63,18 @@ class DataHandlerBINCUE(DataHandler):
         # Don't re-convert if files exist
         if len(wavs) == 0 and len(isos) == 0 :
             # Build bchunk command to generate CUE
-            cmd = f"bchunk -w {data_in["data_dir"]}/{data_in["data_files"]["BIN"]} {data_in["data_dir"]}/{data_in["data_files"]["CUE"]} {data_wav["data_dir"]}/track"
+            cmd = [
+                "bchunk",
+                "-w",
+                f"{data_in["data_dir"]}/{data_in["data_files"]["BIN"]}",
+                f"{data_in["data_dir"]}/{data_in["data_files"]["CUE"]}",
+                f"{data_wav["data_dir"]}/track"
+            ]
 
             # Run command
-            self.osRun(cmd)
+            result = self.osRun(cmd)
+            self.log("bchunk_stdout",str(result.stdout))
+            self.log("bchunk_stderr",str(result.stderr))
 
 
         # Get files in ouput directory
