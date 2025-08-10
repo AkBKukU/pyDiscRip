@@ -8,7 +8,16 @@ import glob
 import json
 
 # External Modules
-import ffmpeg
+try:
+    import ffmpeg
+    if not "input" in dir(ffmpeg):
+        print("You have the wrong ffmpeg python module installed.")
+        print("Need to install Python module [ffmpeg-python]")
+        sys.exit(1)
+
+except Exception as e:
+    print("Need to install Python module [ffmpeg-python]")
+    sys.exit(1)
 
 # Internal Modules
 from handler.data.data_handler import DataHandler
