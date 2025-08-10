@@ -1,7 +1,7 @@
 
 # Python System
 from pprint import pprint
-import os
+import os, sys
 import json
 
 import logging
@@ -16,6 +16,7 @@ try:
     from flask import send_from_directory
 except Exception as e:
         print("Need to install Python module [flask]")
+        sys.exit(1)
 
 from multiprocessing import Process
 

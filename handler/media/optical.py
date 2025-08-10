@@ -11,9 +11,21 @@ from pprint import pprint
 from urllib import request, parse
 
 # External Modules
-import libdiscid
-import musicbrainzngs
-import pycdio, cdio
+try:
+    import libdiscid
+except Exception as e:
+        print("Need to install Python module [python-libdiscid]")
+        sys.exit(1)
+try:
+    import musicbrainzngs
+except Exception as e:
+        print("Need to install Python module [musicbrainzngs]")
+        sys.exit(1)
+try:
+    import pycdio, cdio
+except Exception as e:
+        print("Need to install Python module [pycdio]")
+        sys.exit(1)
 
 # Internal Modules
 from handler.media.media_handler import MediaHandler
