@@ -14,7 +14,7 @@ from urllib import request, parse
 try:
     import libdiscid
 except Exception as e:
-        print("Need to install libdiscid systen package for [libdiscid-dev build-essential python-dev-is-python3]")
+        print("Need to install libdiscid system packages [libdiscid-dev build-essential python-dev-is-python3]")
         print("Need to install Python module [python-libdiscid]")
         sys.exit(1)
 try:
@@ -25,7 +25,7 @@ except Exception as e:
 try:
     import pycdio, cdio
 except Exception as e:
-        print("Need to install libdiscid systen package for [libcdio-dev libiso9660-dev swig pkg-config build-essential python-dev-is-python3]")
+        print("Need to install pycdio system packages [libcdio-dev libiso9660-dev swig pkg-config build-essential python-dev-is-python3]")
         print("Need to install Python module [pycdio]")
         sys.exit(1)
 

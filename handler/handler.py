@@ -13,7 +13,11 @@ from pprint import pprint
 from urllib import request, parse
 
 # External Modules
-import unidecode
+try:
+    import unidecode
+except Exception as e:
+        print("Need to install Python module [unidecode]")
+        sys.exit(1)
 
 
 class Handler(object):

@@ -73,17 +73,18 @@ The `{input_file}` and `{data_dir}` parts of the "cmd" get substituted before ex
 
 ## Installation
 
-### pip
-
-    flask pyudev python-libdiscid
-
 ### System
 Some features of this software require the usage of system level program execution. In the future it would be prefered to replace these with native python packages but that isn't possible currently.
 
 You will need the following system packages:
 
-    cdrdao bchunk ddrescue 7z libdiscid
+    cdrdao bchunk ddrescue 7z ibdiscid-dev python-dev-is-python3 libcdio-dev libiso9660-dev swig pkg-config
 
+
+### pip
+Make sure to install system packages first as some pip packages using them for building modules
+
+    flask pyudev python-libdiscid musicbrainzngs pycdio unidecode
 
 For floppy media reading you will also need the greaseweazle software installed. You will most likely have it installed if you have used it before. But if you want to directly install the latest version you can use the following command:
 
