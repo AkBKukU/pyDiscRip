@@ -3,7 +3,7 @@
 # WAV conversion module for pyDiscRip.
 
 # Python System
-import os
+import os, sys
 import glob
 import json
 
