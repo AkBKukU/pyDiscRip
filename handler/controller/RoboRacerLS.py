@@ -7,7 +7,6 @@ import json
 from pathlib import Path
 import time
 from pprint import pprint
-import serial
 
 # External Modules
 try:
