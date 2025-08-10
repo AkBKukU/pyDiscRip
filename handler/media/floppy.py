@@ -156,12 +156,6 @@ class MediaHandlerFloppy(MediaHandler):
     def eject(self,media_sample):
         """Eject drive tray
         """
-        config_data=media_sample["config_data"]
-        print(f"Please remove [{media_sample["name"]}] from [{media_sample["drive"]}]")
-        if self.controller is not None:
-            self.web_update({"drive_status":{media_sample["drive"]:{"status":3}}},media_sample["config_data"])
-            self.controller.load_hold(callback=MediaHandler.web_after_action,callback_arg={"url":f"http://{config_data["settings"]["web"]["ip"]}:{config_data["settings"]["web"]["port"]}/status/drive_status.json","drive":media_sample["drive"]})
-            return
         time.sleep(1)
 
     def load(self,media_sample,bypass=False):
@@ -174,7 +168,7 @@ class MediaHandlerFloppy(MediaHandler):
         config_data=media_sample["config_data"]
         print(f"Please load [{media_sample["name"]}] into [{media_sample["drive"]}]")
         if self.controller is not None:
-            self.web_update({"drive_status":{media_sample["drive"]:{"status":3}}},media_sample["config_data"])
+            self.web_update({"drive_status":{media_sample["drive"]:{"status":3,"title":f"Please load [{media_sample["name"]}] into [{media_sample["drive"]}]"}}},media_sample["config_data"])
             self.controller.load_hold(callback=MediaHandler.web_after_action,callback_arg={"url":f"http://{config_data["settings"]["web"]["ip"]}:{config_data["settings"]["web"]["port"]}/status/drive_status.json","drive":media_sample["drive"]})
             return
 

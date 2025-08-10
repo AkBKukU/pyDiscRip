@@ -346,7 +346,7 @@ class MediaReader(object):
         """
         # Drive update
         MediaReader.drive_status[media_sample["drive"]]["status"]=2
-        MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":2}}},config_data)
+        MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":2,"title":"Initializing"}}},config_data)
 
         # Init media manager
         media_manager = MediaHandlerManager()
@@ -363,14 +363,14 @@ class MediaReader(object):
 
         # Drive update
         MediaReader.drive_status[media_sample["drive"]]["status"]=1
-        MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":1}}},config_data)
+        MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":1,"title":"Ripping"}}},config_data)
 
         # Rip
         MediaReader.rip(media_sample,config_data,callback_update,controller)
 
         # Drive update
         MediaReader.drive_status[media_sample["drive"]]["status"]=2
-        MediaReader.web_update({"drive_status":MediaReader.drive_status},config_data)
+        MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":2,"title":"Queued for removal"}}},config_data)
 
         # Wait for preeceding processes to keep media output order same
         if wait is not None:
@@ -379,7 +379,7 @@ class MediaReader(object):
                     print(f"[{media_sample["name"]}] Waiting for {process}...")
                     # Drive update
                     MediaReader.drive_status[media_sample["drive"]]["status"]=4
-                    MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":4}}},config_data)
+                    MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":4,"title":"Waiting for previous media"}}},config_data)
                     time.sleep(3)
 
         # Eject media
@@ -387,7 +387,7 @@ class MediaReader(object):
 
         # Drive update
         MediaReader.drive_status[media_sample["drive"]]["status"]=0
-        MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":0}}},config_data)
+        MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":0,"title":"Idle"}}},config_data)
 
 
     def convert_data(media_sample,config_data):

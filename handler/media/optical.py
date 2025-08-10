@@ -64,7 +64,7 @@ class MediaOptical(MediaHandler):
             except cdio.TrackError:
                 print(f"Please insert [{media_sample["name"]}] into [{media_sample["drive"]}]")
                 self.eject(media_sample)
-                self.web_update({"drive_status":{media_sample["drive"]:{"status":3}}},media_sample["config_data"])
+                self.web_update({"drive_status":{media_sample["drive"]:{"status":3,"title":f"Please insert [{media_sample["name"]}] into [{media_sample["drive"]}]"}}},media_sample["config_data"])
                 wait_load=10
 
 

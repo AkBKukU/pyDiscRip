@@ -67,6 +67,11 @@ function drivesLoadStatus(event)
 						drive.classList.add("attention");
 						break;
 				}
+
+				if ("title" in value)
+				{
+					drive.title = value["title"];
+				}
 			}
 		}
 	);
