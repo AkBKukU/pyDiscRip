@@ -4,14 +4,18 @@ from pprint import pprint
 import os
 import json
 
-# External Modules
-from flask import Flask
-from flask import request
-from flask import send_file
-from flask import redirect
-from flask import make_response
-from flask import send_from_directory
 import logging
+
+try:
+    # External Modules
+    from flask import Flask
+    from flask import request
+    from flask import send_file
+    from flask import redirect
+    from flask import make_response
+    from flask import send_from_directory
+except Exception as e:
+        print("Need to install Python module [flask]")
 
 from multiprocessing import Process
 
@@ -25,6 +29,7 @@ class WebInterface(object):
     """
 
     def __init__(self,settings=None):
+
 
         self.host_dir=os.path.realpath(__file__).replace(os.path.basename(__file__),"")
 

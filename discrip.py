@@ -15,7 +15,6 @@ import shutil
 from pprint import pprint
 
 # External Modules
-import pyudev
 import asyncio
 import signal
 
