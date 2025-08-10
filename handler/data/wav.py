@@ -59,55 +59,83 @@ class DataHandlerWAV(DataHandler):
         data_files = {}
         # Matching release for metadata
         release = {}
-
+        metadata = None
         # Open metadata json
-        with open(f"{data_meta["data_dir"]}/{data_meta["data_files"]["JSON"]}", encoding="utf-8") as f:
-            json_data = json.load(f)
+        if data_meta is not None:
+            with open(f"{data_meta["data_dir"]}/{data_meta["data_files"]["JSON"]}", encoding="utf-8") as f:
+                json_data = json.load(f)
 
-            # Get discid for sample ripped
-            discid = json_data["disc"]["id"]
+                # Get discid for sample ripped
+                discid = json_data["disc"]["id"]
 
-            # Iterate through all releases in metadata
-            for medium in json_data["disc"]["release-list"][0]["medium-list"]:
-                for disc in medium["disc-list"]:
-                    # Find matching release
-                    if disc["id"] == discid:
-                        release = medium
-                        # break?
+                # Iterate through all releases in metadata
+                for medium in json_data["disc"]["release-list"][0]["medium-list"]:
+                    for disc in medium["disc-list"]:
+                        # Find matching release
+                        if disc["id"] == discid:
+                            release = medium
+                            # break?
 
-            # Get track data for release
-            tracks = release["track-list"]
+                # Get track data for release
+                tracks = release["track-list"]
 
+                # Build metadata for ffmpeg
+                metadata = {
+                    "metadata:g:1": f"artist={json_data["disc"]["release-list"][0]["artist-credit-phrase"]}",
+                    "metadata:g:2": f"album={json_data["disc"]["release-list"][0]["title"]}",
+                    "metadata:g:3": f"date={int(json_data["disc"]["release-list"][0]["date"][0:4])}"
+                }
+                 # Build data output for FLAC
+                data_files = {
+                    "type_id": "FLAC",
+                    "processed_by": [],
+                    "data_dir": self.ensureDir(f"{self.getPath()}/FLAC/{self.cleanFilename(json_data["disc"]["release-list"][0]["artist-credit-phrase"])}/{json_data["disc"]["release-list"][0]["date"][0:4]} - {self.cleanFilename(json_data["disc"]["release-list"][0]["title"])}"),
+                    "data_files": {
+                        "FLAC": []
+                    }
+                }
+        else:
             # Build metadata for ffmpeg
             metadata = {
-                "metadata:g:1": f"artist={json_data["disc"]["release-list"][0]["artist-credit-phrase"]}",
-                "metadata:g:2": f"album={json_data["disc"]["release-list"][0]["title"]}",
-                "metadata:g:3": f"date={int(json_data["disc"]["release-list"][0]["date"][0:4])}"
+                "metadata:g:1": f"artist=Unknown Artist",
+                "metadata:g:2": f"album=Unknown Album",
+                "metadata:g:3": f"date=0"
             }
-
             # Build data output for FLAC
             data_files = {
                 "type_id": "FLAC",
                 "processed_by": [],
-                "data_dir": self.ensureDir(f"{self.getPath()}/FLAC/{self.cleanFilename(json_data["disc"]["release-list"][0]["artist-credit-phrase"])}/{json_data["disc"]["release-list"][0]["date"][0:4]} - {self.cleanFilename(json_data["disc"]["release-list"][0]["title"])}"),
+                "data_dir": self.ensureDir(f"{self.getPath()}/FLAC"),
                 "data_files": {
                     "FLAC": []
                 }
             }
 
+
+
         # Iterate over WAV files
         for i,v in enumerate(data["data_files"]["WAV"]):
-            print(f"Working on: {data["data_files"]["WAV"][i]}: {self.cleanFilename(tracks[i]["recording"]["title"])}")
-            # Set track title in ffmpeg metadata
-            metadata["metadata:g:0"] = f"title={tracks[i]["recording"]["title"]}"
+            if data_meta is not None:
+                print(f"Working on: {data["data_files"]["WAV"][i]}: {self.cleanFilename(tracks[i]["recording"]["title"])}")
+                # Set track title in ffmpeg metadata
+                metadata["metadata:g:0"] = f"title={tracks[i]["recording"]["title"]}"
+                # Run ffmpeg to conver WAV to FLAC
+                (ffmpeg
+                    .input(f"{data["data_dir"]}/{data["data_files"]["WAV"][i]}")
+                    .output(f"{data_files["data_dir"]}/{(i+1):02} - {self.cleanFilename(tracks[i]["recording"]["title"])}.flac", **metadata)
+                    .overwrite_output()
+                    .run(capture_stdout=True, capture_stderr=True)
+                )
+            else:
+                print(f"Working on: {data["data_files"]["WAV"][i]}")
+                metadata["metadata:g:0"] = f"title=Track - {(i+1):02}"
+                (ffmpeg
+                    .input(f"{data["data_dir"]}/{data["data_files"]["WAV"][i]}")
+                    .output(f"{data_files["data_dir"]}/{(i+1):02} - Track.flac", **metadata)
+                    .overwrite_output()
+                    .run(capture_stdout=True, capture_stderr=True)
+                )
 
-            # Run ffmpeg to conver WAV to FLAC
-            (ffmpeg
-                .input(f"{data["data_dir"]}/{data["data_files"]["WAV"][i]}")
-                .output(f"{data_files["data_dir"]}/{(i+1):02} - {self.cleanFilename(tracks[i]["recording"]["title"])}.flac", **metadata)
-                .overwrite_output()
-                .run(capture_stdout=True, capture_stderr=True)
-            )
 
         # Get FLAC files
         flacs = glob.glob(f"{data_files["data_dir"]}/*.flac")

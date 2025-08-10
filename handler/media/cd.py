@@ -170,6 +170,7 @@ class MediaHandlerCD(MediaOptical):
                                                             includes=["artists", "recordings"])
             except musicbrainzngs.ResponseError:
                 print("disc not found or bad response")
+                return None
             else:
                 # Received metadata
                 if result.get("disc"):
