@@ -42,7 +42,6 @@ class MediaHandlerFloppy(MediaHandler):
                 "hard-sectors": None,
                 "seek-retries": None,
                 "pll": None,
-                "device": None,
                 "densel": None,
                 "reverse": None
                 }
@@ -88,7 +87,7 @@ class MediaHandlerFloppy(MediaHandler):
         args.append("pyDiscRip") # Not actually used but index position is needed
         args.append("read") # Not actually used but index position is needed
         args.append("--drive")
-        args.append(media_sample["drive"])
+        args.append(media_sample["drive"].split("@")[0])
 
         # Process all config options to build parameters for gw module
         if "revs" in self.config_data["gw"] and self.config_data["gw"]["revs"] is not None:
@@ -103,9 +102,9 @@ class MediaHandlerFloppy(MediaHandler):
         if "pll" in self.config_data["gw"] and self.config_data["gw"]["pll"] is not None:
             args.append("--pll")
             args.append(self.config_data["gw"]["pll"])
-        if "device" in self.config_data["gw"] and self.config_data["gw"]["device"] is not None:
+        if "@" in media_sample["drive"]:
             args.append("--device")
-            args.append(self.config_data["gw"]["device"])
+            args.append(media_sample["drive"].split("@")[1])
         if "densel" in self.config_data["gw"] and self.config_data["gw"]["densel"] is not None:
             args.append("--densel")
             args.append(self.config_data["gw"]["densel"])
@@ -151,12 +150,22 @@ class MediaHandlerFloppy(MediaHandler):
         Only rips to flux, the convert step later can be used to decode flux
 
         """
+        # Lock drive bus
+        if self.controller is not None:
+            self.controller.floppy_bus_check(True)
 
         # Setup rip output path
         self.setProjectDir(media_sample["name"])
 
         # Rip and return data
-        return [self.ripToFlux(media_sample)]
+        data = self.ripToFlux(media_sample)
+
+        # Unlock drive bus
+        if self.controller is not None:
+            self.controller.floppy_bus_check(False)
+
+        # Rip and return data
+        return [data]
 
 
     def eject(self,media_sample):
@@ -176,9 +185,10 @@ class MediaHandlerFloppy(MediaHandler):
         if self.controller is not None:
             self.web_update({"drive_status":{media_sample["drive"]:{"status":3,"title":f"Please load [{media_sample["name"]}] into [{media_sample["drive"]}]"}}},media_sample["config_data"])
             self.controller.load_hold(callback=MediaHandler.web_after_action,callback_arg={"url":f"http://{config_data["settings"]["web"]["ip"]}:{config_data["settings"]["web"]["port"]}/status/drive_status.json","drive":media_sample["drive"]})
+
+            self.web_update({"drive_status":{media_sample["drive"]:{"status":2,"title":f"Waiting for bus to be free"}}},media_sample["config_data"])
+            self.controller.floppy_bus_check()
             return
-
-
 
         if bypass:
             # Allow skipping blocking to handle externally

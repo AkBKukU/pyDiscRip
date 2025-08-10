@@ -134,6 +134,8 @@ class MediaReader(object):
                 controllers[config["id"]] = controller_manager.getController(config["controller_type"])
                 controllers[config["id"]].configDirect(config)
                 controllers[config["id"]].initialize()
+                controllers[config["id"]].controller_id = config["id"]
+                print(f"Setting {config["controller_type"]} to {controllers[config["id"]].controller_id}")
 
         # Get drive groups
         for drive_cat, drives in drive_data.items():
@@ -302,6 +304,8 @@ class MediaReader(object):
         if media_handler is not None:
             # Setup config
             media_handler.config(config_data)
+            # Set controller
+            media_handler.controller = controller
             # Rip media and store information about resulting data
             data_outputs = media_handler.rip(media_sample)
             # Add all data to the media object

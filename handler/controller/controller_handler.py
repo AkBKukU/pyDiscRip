@@ -26,6 +26,8 @@ class ControllerHandler(Handler):
         super().__init__()
         # Set media type id for later use
         self.type_id=None
+        # Set id to match against
+        self.controller_id=None
         # Set directory to work in
         self.project_dir=""
         # Get current datetime

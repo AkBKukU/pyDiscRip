@@ -137,6 +137,10 @@ def main():
 
     """
 
+    # Clean up old temp data
+    if os.path.exists("/tmp/discrip"):
+        shutil.rmtree("/tmp/discrip")
+
     # Setup CLI arguments
     parser = argparse.ArgumentParser(
                     prog="pyDiscRip",
@@ -167,17 +171,17 @@ def main():
                 "Greaseweazle": [
                     {
                         "name":"Floppy A",
-                        "drive": "a",
+                        "drive": "a@/dev/ttyACM0",
                         "group":"3.5in",
                         "type":"FLOPPY",
                         "controller_id":"gw1"
                     },
                     {
                         "name":"Floppy B",
-                        "drive": "b",
+                        "drive": "b@/dev/ttyACM0",
                         "group":"5.25in",
                         "type":"FLOPPY",
-                        "s":"gw1"
+                        "controller_id":"gw1"
                     },
 
                 ],

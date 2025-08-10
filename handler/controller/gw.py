@@ -38,3 +38,23 @@ class ControllerGw(ControllerHandler):
         self.data_outputs=[]
         self.cd_tracks=0
         return
+
+    def floppy_bus_check(self, state=None):
+        """Sets and stores PID state of a process as a dict in json to /tmp folder
+
+        """
+        print(f"Checking bus of : {self.controller_id}")
+
+        tmp=self.ensureDir("/tmp/discrip/gw")
+        if state is None:
+            # read
+            while os.path.isfile(f"{tmp}/{self.controller_id}"):
+                time.sleep(3)
+        else:
+            # write
+            print(f"Setting bus state: {self.controller_id} = {state}")
+            if state:
+                Path(f"{tmp}/{self.controller_id}").touch()
+            else:
+                os.remove(f"{tmp}/{self.controller_id}")
+
