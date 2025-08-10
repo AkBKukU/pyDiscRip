@@ -15,10 +15,10 @@ import musicbrainzngs
 import pycdio, cdio
 
 # Internal Modules
-from handler.media.media_handler import MediaHandler
+from handler.controller.controller_handler import ControllerHandler
 
 
-class ControllerGw(object):
+class ControllerGw(ControllerHandler):
     """Handler for CD media types
 
     rips using a subprocess command to run `cdrdao` to create a BIN/CUE
@@ -31,7 +31,7 @@ class ControllerGw(object):
         # Call parent constructor
         super().__init__()
         # Set media type to handle
-        self.type_id="OPTICAL"
+        self.type_id="Greaseweazle"
         # Default config data
         self.config_data=None
         # Data types output

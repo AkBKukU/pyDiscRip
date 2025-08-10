@@ -5,6 +5,7 @@
 # Python System
 import sys, os
 import json
+import time
 from enum import Enum
 from datetime import datetime
 
@@ -21,7 +22,7 @@ class ControllerHandler(Handler):
         """Constructor to setup basic data and config defaults
 
         """
-        # Call parent constructor
+        # Call parent constructorw
         super().__init__()
         # Set media type id for later use
         self.type_id=None
@@ -32,6 +33,8 @@ class ControllerHandler(Handler):
         # Data types output for later use
         self.data_outputs=[]
 
+    def initialize(self):
+        return
 
     def controllerMatch(self, media_sample=None):
         """Check if the media sample should be handled by this type"""
@@ -40,8 +43,7 @@ class ControllerHandler(Handler):
 
     def load_hold(self,callback=None,callback_arg=None):
         if callback is not None:
-            while callback(callback_arg):
-                time.sleep(5)
+            callback(callback_arg)
 
     def load(self, drive):
         return False

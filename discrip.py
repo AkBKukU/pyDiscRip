@@ -203,7 +203,7 @@ def main():
                     }
                 ],
             },
-            "controlers":[
+            "controllers":[
                 {
                     "controller_type":"RoboRacerLS",
                     "id": "stacker",

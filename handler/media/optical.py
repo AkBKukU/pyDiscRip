@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import time
 from pprint import pprint
+from urllib import request, parse
 
 # External Modules
 import libdiscid
@@ -63,15 +64,19 @@ class MediaOptical(MediaHandler):
             except cdio.TrackError:
                 print(f"Please insert [{media_sample["name"]}] into [{media_sample["drive"]}]")
                 self.eject(media_sample)
+                self.web_update({"drive_status":{media_sample["drive"]:{"status":3}}},media_sample["config_data"])
                 wait_load=10
 
 
     def eject(self,media_sample):
         """Eject drive tray
         """
+        print("OPTICAL EJECT")
         if self.controller is not None:
+            print("Controller EJECT")
             if self.controller.eject(media_sample["drive"]):
                 return
+        print("EJECTING...")
         d=cdio.Device(media_sample["drive"])
-        #d.eject_media()
+        d.eject_media()
         time.sleep(3)

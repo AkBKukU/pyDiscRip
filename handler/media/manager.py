@@ -123,19 +123,19 @@ class MediaHandlerManager(object):
             devices = context.list_devices(sys_name=drivepath.replace("/dev/",""))
             dev = next(iter(devices))
 
-            #print(f"Dat wot tell you the things drive do:")
-            #pprint(dict(dev.properties))
             #print(json.dumps(dict(dev.properties),indent=4))
             # Determine media type by ID
-            if dev.properties.get("ID_CDROM_MEDIA_CD", False):
+            if dev.properties.get("ID_CDROM_MEDIA_CD", False) or dev.properties.get("ID_CDROM_MEDIA_CD_R", False):
                 media_type="CD"
                 output = False
+                print("Is CD")
             elif dev.properties.get("ID_CDROM_MEDIA_DVD", False):
                 media_type="DVD"
                 output = False
                 print("Is DVD")
             elif dev.properties.get("ID_CDROM_MEDIA_BD", False):
                 media_type="BD"
+                output = False
             time.sleep(3)
 
         return media_type

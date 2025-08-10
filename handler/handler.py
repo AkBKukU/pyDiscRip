@@ -5,10 +5,12 @@
 # Python System
 import sys, os,re
 import json
+import time
 from enum import Enum
 from datetime import datetime
 import subprocess
 from pprint import pprint
+from urllib import request, parse
 
 # External Modules
 import unidecode
@@ -58,6 +60,31 @@ class Handler(object):
         self.virt_cmd=setup["cmd"]
         # Data format
         self.data_output_format=setup["data_output"]
+
+    def web_after_action(data):
+        wait_time=time.time()
+        action_time=0
+        while(wait_time>action_time):
+            print(f"{wait_time} > {action_time}")
+            with request.urlopen(data["url"]) as url:
+                drive_status = json.load(url)
+                pprint(drive_status[data["drive"]])
+                if "action" in drive_status[data["drive"]]:
+                    print("HAS ACTION")
+                    action_time=drive_status[data["drive"]]["action"]
+                    print(action_time)
+            time.sleep(5)
+        return not wait_time>action_time
+
+    def web_update(self,data, config_data):
+
+        # Post Method is invoked if data != None
+        endpoint=f"http://{config_data["settings"]["web"]["ip"]}:{config_data["settings"]["web"]["port"]}/update"
+        data=json.dumps(data).encode("utf-8")
+        req =  request.Request(endpoint, data=data)
+
+        # Response
+        resp = request.urlopen(req)
 
 
     def cleanFilename(self, filename_raw):
@@ -161,8 +188,11 @@ class Handler(object):
         """Set configuration data for handler by matching ID
 
         """
+        if self.config_data is None:
+            return
         print(f"ConfigureDirect: {self.type_id}")
         # Iterate over all top level config values
+        pprint(config_data)
         for key, value in config_data.items():
             if value is not None and key in self.config_data:
                 # Set all config values

@@ -153,27 +153,34 @@ class MediaHandlerFloppy(MediaHandler):
         return [self.ripToFlux(media_sample)]
 
 
-    # def eject(self,media_sample):
-    #     """Eject drive tray
-    #     """
-    #     print(f"Please remove [{media_sample["name"]}] from [{media_sample["drive"]}]")
-    #     ControllerGw.unlock(media_sample["controller_id"])
-    #     time.sleep(1)
-    #
-    # def load(self,media_sample,bypass=False):
-    #     """Load media before continuing.
-    #
-    #     Default method call waits for user to press enter
-    #
-    #     Overload with automatic methods where possible.
-    #     """
-    #     while (ControllerGw.wait(media_sample["controller_id"])):
-    #          time.sleep(5)
-    #
-    #     ControllerGw.lock(media_sample["controller_id"])
-    #
-    #
-    #     if bypass:
-    #         # Allow skipping blocking to handle externally
-    #         return
-    #     input(f"Please load [{media_sample["name"]}] into [{media_sample["drive"]}]")
+    def eject(self,media_sample):
+        """Eject drive tray
+        """
+        config_data=media_sample["config_data"]
+        print(f"Please remove [{media_sample["name"]}] from [{media_sample["drive"]}]")
+        if self.controller is not None:
+            self.web_update({"drive_status":{media_sample["drive"]:{"status":3}}},media_sample["config_data"])
+            self.controller.load_hold(callback=MediaHandler.web_after_action,callback_arg={"url":f"http://{config_data["settings"]["web"]["ip"]}:{config_data["settings"]["web"]["port"]}/status/drive_status.json","drive":media_sample["drive"]})
+            return
+        time.sleep(1)
+
+    def load(self,media_sample,bypass=False):
+        """Load media before continuing.
+
+        Default method call waits for user to press enter
+
+        Overload with automatic methods where possible.
+        """
+        config_data=media_sample["config_data"]
+        print(f"Please load [{media_sample["name"]}] into [{media_sample["drive"]}]")
+        if self.controller is not None:
+            self.web_update({"drive_status":{media_sample["drive"]:{"status":3}}},media_sample["config_data"])
+            self.controller.load_hold(callback=MediaHandler.web_after_action,callback_arg={"url":f"http://{config_data["settings"]["web"]["ip"]}:{config_data["settings"]["web"]["port"]}/status/drive_status.json","drive":media_sample["drive"]})
+            return
+
+
+
+        if bypass:
+            # Allow skipping blocking to handle externally
+            return
+        input(f"Please load [{media_sample["name"]}] into [{media_sample["drive"]}]")

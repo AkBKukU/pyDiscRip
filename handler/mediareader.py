@@ -110,9 +110,7 @@ class MediaReader(object):
 
         # Post Method is invoked if data != None
         endpoint=f"http://{config_data["settings"]["web"]["ip"]}:{config_data["settings"]["web"]["port"]}/update"
-        print(endpoint)
         data=json.dumps(data).encode("utf-8")
-        print(f"data: {data}")
         req =  request.Request(endpoint, data=data)
 
         # Response
@@ -132,7 +130,7 @@ class MediaReader(object):
 
         controller_manager = ControllerHandlerManager()
         if "controllers" in config_data["settings"]:
-            for config in config_data["settings"]["controlers"]:
+            for config in config_data["settings"]["controllers"]:
                 controllers[config["id"]] = controller_manager.getController(config["controller_type"])
                 controllers[config["id"]].configDirect(config)
                 controllers[config["id"]].initialize()
@@ -143,7 +141,7 @@ class MediaReader(object):
                 # Build drive status
                 MediaReader.drive_status[drive["drive"]]={
                         "name":drive["name"],
-                        "status":0 # 0 = free, 1 = ripping, 2 = auto loading, 3 = manual load needed
+                        "status":0 # 0 = free, 1 = ripping, 2 = auto loading, 3 = manual load needed 4 = waiting for drive order
                     }
 
                 # Add new groups
@@ -159,6 +157,7 @@ class MediaReader(object):
                 if "controller_id" in drive:
                     groups[drive["group"]]["drive"][drive["drive"]]["controller"]=drive["controller_id"]
 
+        # Drive update
         MediaReader.web_update({"drive_status":MediaReader.drive_status},config_data)
 
         # List out groups
@@ -345,6 +344,9 @@ class MediaReader(object):
         """ Attempt to automatically manage ripping process for samples
 
         """
+        # Drive update
+        MediaReader.drive_status[media_sample["drive"]]["status"]=2
+        MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":2}}},config_data)
 
         # Init media manager
         media_manager = MediaHandlerManager()
@@ -359,18 +361,33 @@ class MediaReader(object):
         # Set controller
         media_handler.controller = controller
 
+        # Drive update
+        MediaReader.drive_status[media_sample["drive"]]["status"]=1
+        MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":1}}},config_data)
+
         # Rip
         MediaReader.rip(media_sample,config_data,callback_update,controller)
+
+        # Drive update
+        MediaReader.drive_status[media_sample["drive"]]["status"]=2
+        MediaReader.web_update({"drive_status":MediaReader.drive_status},config_data)
 
         # Wait for preeceding processes to keep media output order same
         if wait is not None:
             for process in wait:
                 while(MediaReader.processState(process)["is_alive"]):
                     print(f"[{media_sample["name"]}] Waiting for {process}...")
+                    # Drive update
+                    MediaReader.drive_status[media_sample["drive"]]["status"]=4
+                    MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":4}}},config_data)
                     time.sleep(3)
 
         # Eject media
         media_manager.ejectMediaType(media_sample)
+
+        # Drive update
+        MediaReader.drive_status[media_sample["drive"]]["status"]=0
+        MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":0}}},config_data)
 
 
     def convert_data(media_sample,config_data):

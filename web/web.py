@@ -48,7 +48,7 @@ class WebInterface(object):
         self.app.add_url_rule('/update','update', self.update,methods=["POST"])
 
         # Callback data
-        self.drive_status=None
+        self.drive_status={}
 
         # Set headers for server
         self.app.after_request(self.add_header)
@@ -119,11 +119,22 @@ class WebInterface(object):
         """ Simple class function to send HTML to browser """
 
         print("Updating API")
-        pprint(request.form)
-        if "drive_status" in request.form:
+        pprint(request.form.to_dict())
+        data_dict = request.form.to_dict()
+        if not data_dict:
+            pprint(request.get_data())
+            data = json.loads(request.get_data())
+        else:
+            data = json.loads(next(iter(data_dict)))
+        pprint(data)
+
+        if "drive_status" in data:
             print("Updating drive status")
-            pprint(request.form["drive_status"])
-            self.drive_status = json.loads(request.form["drive_status"])
+            for drive, update in data["drive_status"].items():
+                if drive not in self.drive_status:
+                    self.drive_status[drive]={}
+                for key, value in update.items():
+                    self.drive_status[drive][key] = value
 
         return "thx"
 
@@ -166,8 +177,6 @@ class WebInterface(object):
 
     def drive_status_json(self):
         """ Simple class function to send HTML to browser """
-        print("sending drive status")
-        pprint(self.drive_status)
         return json.dumps(self.drive_status), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
 

@@ -1,0 +1,43 @@
+#status-drives .idle
+{
+    color: #fff;
+    background-color: #777;
+}
+
+#status-drives .good
+{
+    color: #000;
+    background-color: #5f5;
+}
+
+#status-drives .working
+{
+    color: #000;
+    background-color: #ff5;
+}
+
+#status-drives .attention
+{
+    color: #000;
+    background-color: #f00;
+    animation: blinker 1s linear infinite;
+}
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
+}
+
+.status-view h3,
+.status-view h4
+{
+    margin: 0px;
+}
+
+.status-view,
+.status-view td,
+.status-view th
+{
+    border: 1px solid #000;
+    border-spacing: 0px;
+}

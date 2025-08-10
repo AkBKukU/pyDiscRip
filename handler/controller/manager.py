@@ -8,6 +8,7 @@ from pprint import pprint
 
 # Internal Modules
 from handler.controller.RoboRacerLS import ControllerRoboRacerLS
+from handler.controller.gw import ControllerGw
 # Testing only
 from handler.media.dummy import MediaHandlerDummy
 
@@ -26,6 +27,7 @@ class ControllerHandlerManager(object):
         # Add all supported media types
         self.controller_types={}
         self.controller_types["RoboRacerLS"] = ControllerRoboRacerLS()
+        self.controller_types["Greaseweazle"] = ControllerGw()
 
     def getController(self,controller_type):
         return(self.controller_types[controller_type])
