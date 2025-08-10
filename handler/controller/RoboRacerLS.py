@@ -13,8 +13,8 @@ import serial
 try:
     import serial
 except Exception as e:
-        print("Need to install Python module [pyserial]")
-        sys.exit(1)
+    print("Need to install Python module [pyserial]")
+    sys.exit(1)
 
 # Internal Modules
 from handler.controller.controller_handler import ControllerHandler
