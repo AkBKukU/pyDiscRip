@@ -71,8 +71,14 @@ class MediaHandlerFloppy(MediaHandler):
             }
         self.status(data)
 
-        # Import greaseweazle read module to access hardware
-        mod = importlib.import_module('greaseweazle.tools.read')
+        try:
+            # Import greaseweazle read module to access hardware
+            mod = importlib.import_module('greaseweazle.tools.read')
+        except Exception as e:
+            print("Need to install greaseweazle software:")
+            print("pip install git+https://github.com/keirf/greaseweazle@latest --force")
+            sys.exit(1)
+
         main = mod.__dict__['main']
 
         # gw modules individually parse arguments to control rip process. This
