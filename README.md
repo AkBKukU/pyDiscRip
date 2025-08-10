@@ -84,15 +84,11 @@ You will need the following system packages:
 ### pip
 Make sure to install system packages first as some pip packages using them for building modules
 
-    flask pyudev python-libdiscid musicbrainzngs pycdio unidecode
+    flask pyudev python-libdiscid musicbrainzngs pycdio unidecode ffmpeg-python pyserial
 
 For floppy media reading you will also need the greaseweazle software installed. You will most likely have it installed if you have used it before. But if you want to directly install the latest version you can use the following command:
 
     pip install git+https://github.com/keirf/greaseweazle@latest --force
-
-### FFMPEG
-
-    pip3 install ffmpeg-python
 
 ## Roadmap
 

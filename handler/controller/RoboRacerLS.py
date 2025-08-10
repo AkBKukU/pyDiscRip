@@ -10,9 +10,11 @@ from pprint import pprint
 import serial
 
 # External Modules
-import libdiscid
-import musicbrainzngs
-import pycdio, cdio
+try:
+    import serial
+except Exception as e:
+        print("Need to install Python module [pyserial]")
+        sys.exit(1)
 
 # Internal Modules
 from handler.controller.controller_handler import ControllerHandler
