@@ -82,13 +82,18 @@ class Handler(object):
 
     def web_update(self,data, config_data):
 
-        # Post Method is invoked if data != None
-        endpoint=f"http://{config_data["settings"]["web"]["ip"]}:{config_data["settings"]["web"]["port"]}/update"
-        data=json.dumps(data).encode("utf-8")
-        req =  request.Request(endpoint, data=data)
+        try:
+            # Post Method is invoked if data != None
+            endpoint=f"http://{config_data["settings"]["web"]["ip"]}:{config_data["settings"]["web"]["port"]}/update"
+            data=json.dumps(data).encode("utf-8")
+            req =  request.Request(endpoint, data=data)
 
-        # Response
-        resp = request.urlopen(req)
+            # Response
+            resp = request.urlopen(req)
+        except Exception as e:
+            # Web server probably isn't running, fail silently
+            return
+
 
 
     def cleanFilename(self, filename_raw):

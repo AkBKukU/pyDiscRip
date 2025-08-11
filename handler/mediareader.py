@@ -106,16 +106,6 @@ class MediaReader(object):
         for key, value in drive_process.items():
             value.join()
 
-    def web_update(data, config_data):
-
-        # Post Method is invoked if data != None
-        endpoint=f"http://{config_data["settings"]["web"]["ip"]}:{config_data["settings"]["web"]["port"]}/update"
-        data=json.dumps(data).encode("utf-8")
-        req =  request.Request(endpoint, data=data)
-
-        # Response
-        resp = request.urlopen(req)
-
     def rip_queue_groups(media_samples,config_data,callback_update=None):
         """ Live ripping with drive groups. Uses folder of JSON for input of samples
 
@@ -160,7 +150,7 @@ class MediaReader(object):
                     groups[drive["group"]]["drive"][drive["drive"]]["controller"]=drive["controller_id"]
 
         # Drive update
-        MediaReader.web_update({"drive_status":MediaReader.drive_status},config_data)
+        Handler.web_update(None,{"drive_status":MediaReader.drive_status},config_data)
 
         # List out groups
         print("Found Drive Groups:")
@@ -362,7 +352,7 @@ class MediaReader(object):
         """
         # Drive update
         MediaReader.drive_status[media_sample["drive"]]["status"]=2
-        MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":2,"title":"Initializing"}}},config_data)
+        Handler.web_update(None,{"drive_status":{media_sample["drive"]:{"status":2,"title":"Initializing"}}},config_data)
 
         # Init media manager
         media_manager = MediaHandlerManager()
@@ -379,14 +369,14 @@ class MediaReader(object):
 
         # Drive update
         MediaReader.drive_status[media_sample["drive"]]["status"]=1
-        MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":1,"title":"Ripping"}}},config_data)
+        Handler.web_update(None,{"drive_status":{media_sample["drive"]:{"status":1,"title":"Ripping"}}},config_data)
 
         # Rip
         MediaReader.rip(media_sample,config_data,callback_update,controller)
 
         # Drive update
         MediaReader.drive_status[media_sample["drive"]]["status"]=2
-        MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":2,"title":"Queued for removal"}}},config_data)
+        Handler.web_update(None,{"drive_status":{media_sample["drive"]:{"status":2,"title":"Queued for removal"}}},config_data)
 
         # Wait for preeceding processes to keep media output order same
         if wait is not None:
@@ -395,7 +385,7 @@ class MediaReader(object):
                     print(f"[{media_sample["name"]}] Waiting for {process}...")
                     # Drive update
                     MediaReader.drive_status[media_sample["drive"]]["status"]=4
-                    MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":4,"title":"Waiting for previous media"}}},config_data)
+                    Handler.web_update(None,{"drive_status":{media_sample["drive"]:{"status":4,"title":"Waiting for previous media"}}},config_data)
                     time.sleep(3)
 
         # Eject media
@@ -403,7 +393,7 @@ class MediaReader(object):
 
         # Drive update
         MediaReader.drive_status[media_sample["drive"]]["status"]=0
-        MediaReader.web_update({"drive_status":{media_sample["drive"]:{"status":0,"title":"Idle"}}},config_data)
+        Handler.web_update(None,{"drive_status":{media_sample["drive"]:{"status":0,"title":"Idle"}}},config_data)
 
 
     def convert_data(media_sample,config_data):
