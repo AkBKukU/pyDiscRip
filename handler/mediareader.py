@@ -195,6 +195,8 @@ class MediaReader(object):
                             raw_media_sample["id"]=sample_counter
                             sample_counter+=1
                             media_samples.append(raw_media_sample)
+                            # Drive update
+                            Handler.web_update(None,{"queue":raw_media_sample},config_data)
                             # Ingest status
                             media_handler = Handler()
                             media_handler.config(config_data)

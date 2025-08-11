@@ -50,11 +50,13 @@ class WebInterface(object):
         self.app.add_url_rule('/output/<path:name>','rip_data', self.web_rip_data)
         self.app.add_url_rule('/status/status.json','output_status_json', self.output_status_json)
         self.app.add_url_rule('/status/drive_status.json','drive_status_json', self.drive_status_json)
+        self.app.add_url_rule('/status/queue.json','queue_json', self.queue_json)
         self.app.add_url_rule('/status/file','settings_json', self.settings_json)
         self.app.add_url_rule('/update','update', self.update,methods=["POST"])
 
         # Callback data
         self.drive_status={}
+        self.queue=[]
 
         # Set headers for server
         self.app.after_request(self.add_header)
@@ -142,6 +144,21 @@ class WebInterface(object):
                 for key, value in update.items():
                     self.drive_status[drive][key] = value
 
+
+        if "queue" in data:
+            # support list or not
+            if not isinstance(data["queue"], list):
+                data["queue"] = [data["queue"]]
+            for media_sample in data["queue"]:
+                media_sample.pop('config_data', None)
+                match = next((i for i, item in enumerate(self.queue) if item["name"] == media_sample["name"]), None)
+                if match is not None:
+                    self.queue[i] = media_sample
+                else:
+                    self.queue.append(media_sample)
+
+
+
         return "thx"
 
     def media_sample_status(self,media_sample):
@@ -185,6 +202,9 @@ class WebInterface(object):
         """ Simple class function to send HTML to browser """
         return json.dumps(self.drive_status), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
+    def queue_json(self):
+        """ Simple class function to send HTML to browser """
+        return json.dumps(self.queue), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
     def callback_update(self,data):
         if "drive_status" in data:
