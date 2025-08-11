@@ -161,7 +161,7 @@ class MediaHandlerCD(MediaOptical):
         data = {
             "type_id": "MUSICBRAINZ",
             "processed_by": [],
-            "data_dir": self.ensureDir(f"{self.getPath()}/MUSICBRAINZ"),
+            "data_dir": f"{self.getPath()}/MUSICBRAINZ",
             "data_files": {
                 "JSON": f"{media_sample["name"]}-musicbrainz.json"
             }
@@ -191,6 +191,7 @@ class MediaHandlerCD(MediaOptical):
                 # Received metadata
                 if result.get("disc"):
                     # Write data to json
+                    self.ensureDir(data["data_dir"])
                     with open(f"{data["data_dir"]}/{data["data_files"]["JSON"]}", 'w', encoding="utf-8") as output:
                         output.write(json.dumps(result, indent=4))
 

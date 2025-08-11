@@ -133,6 +133,9 @@ class Handler(object):
         """Log status from processes
 
         """
+        # Setup rip output path
+        if "name" in data:
+            self.setProjectDir(data["name"])
         # Set filepath for status
         status_path=Handler.ensureDir(None,f"{self.getPath()}/status")
 

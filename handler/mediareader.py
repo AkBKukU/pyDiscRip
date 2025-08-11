@@ -197,10 +197,18 @@ class MediaReader(object):
                             if "done" not in raw_media_sample:
                                 raw_media_sample["done"]=False
 
+                            # Set ingest start time
+                            if "time_added" not in raw_media_sample:
+                                raw_media_sample["time_added"] =  str(datetime.now().isoformat()).replace(":","-")
+
                             raw_media_sample["media_type"]=raw_media_sample["media_type"].upper()
                             raw_media_sample["id"]=sample_counter
                             sample_counter+=1
                             media_samples.append(raw_media_sample)
+                            # Ingest status
+                            media_handler = Handler()
+                            media_handler.config(config_data)
+                            media_handler.status(raw_media_sample)
 
             # Check drive groups for free drives
             for group_name, group in groups.items():
@@ -262,6 +270,10 @@ class MediaReader(object):
                                         "controller": controller
                                     }
                                 )
+                            # Pre-rip status
+                            media_handler = Handler()
+                            media_handler.config(config_submit)
+                            media_handler.status(media_sample)
                             # Mark sample done
                             media_sample["done"]=True
 

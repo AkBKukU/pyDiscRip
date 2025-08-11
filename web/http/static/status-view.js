@@ -19,7 +19,11 @@ function mediaSampleView(media_sample)
 	// ROW2 - Preview image
 	tr = document.createElement("tr");
 	var td = document.createElement("td");
-	td.rowSpan = 3;
+	var row =3;
+	if ("time_added" in media_sample) row+=1;
+	if ("time_start" in media_sample) row+=1;
+	if ("time_end" in media_sample) row+=1;
+	td.rowSpan = row;
 	var img = document.createElement("img");
 	if (media_sample["media_type"] == "FLOPPY" && !( media_sample["data"] === undefined))
 	{
@@ -67,6 +71,20 @@ function mediaSampleView(media_sample)
 	table.appendChild(tr);
 
 	// ROW5 - Drive
+	if ("time_added" in media_sample)
+	{
+		tr = document.createElement("tr");
+		td = document.createElement("td");
+		td.innerText="Added";
+		tr.appendChild(td);
+		td = document.createElement("td");
+		td.innerText=media_sample["time_added"];
+		tr.appendChild(td);
+
+		table.appendChild(tr);
+	}
+
+	// ROW6 - Drive
 	if ("time_start" in media_sample)
 	{
 		tr = document.createElement("tr");
@@ -80,7 +98,7 @@ function mediaSampleView(media_sample)
 		table.appendChild(tr);
 	}
 
-	// ROW6- Drive
+	// ROW7- Drive
 	if ("time_end" in media_sample)
 	{
 		tr = document.createElement("tr");
@@ -95,7 +113,7 @@ function mediaSampleView(media_sample)
 	}
 
 	if ( media_sample["data"] === undefined) return table;
-	// ROW7 - Data Header
+	// ROW8 - Data Header
 	tr = document.createElement("tr");
 	var h4 = document.createElement("h4");
 	th = document.createElement("th");
@@ -106,7 +124,7 @@ function mediaSampleView(media_sample)
 
 	table.appendChild(tr);
 
-	// ROW7+N - Data Outputs
+	// ROW8+N - Data Outputs
 	for (const data of media_sample["data"])
 	{
 		tr = document.createElement("tr");
