@@ -89,7 +89,7 @@ class DataHandlerWAV(DataHandler):
                 data_files = {
                     "type_id": "FLAC",
                     "processed_by": [],
-                    "data_dir": self.ensureDir(f"{self.getPath()}/FLAC/{self.cleanFilename(json_data["disc"]["release-list"][0]["artist-credit-phrase"])}/{json_data["disc"]["release-list"][0]["date"][0:4]} - {self.cleanFilename(json_data["disc"]["release-list"][0]["title"])}"),
+                    "data_dir": self.ensureDir(f"{self.getPath()}/FLAC/{data["data_dir"].split("WAV/",1)[1]}/{self.cleanFilename(json_data["disc"]["release-list"][0]["artist-credit-phrase"])}/{json_data["disc"]["release-list"][0]["date"][0:4]} - {self.cleanFilename(json_data["disc"]["release-list"][0]["title"])}"),
                     "data_files": {
                         "FLAC": []
                     }
@@ -105,7 +105,7 @@ class DataHandlerWAV(DataHandler):
             data_files = {
                 "type_id": "FLAC",
                 "processed_by": [],
-                "data_dir": self.ensureDir(f"{self.getPath()}/FLAC"),
+                "data_dir": self.ensureDir(f"{self.getPath()}/FLAC/{data["data_dir"].split("WAV/",1)[1]}"),
                 "data_files": {
                     "FLAC": []
                 }
