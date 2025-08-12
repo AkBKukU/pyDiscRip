@@ -5,6 +5,7 @@ function drivesBuild(data)
 	table.classList.add("status-drives");
 
 	var tr = document.createElement("tr");
+	var tr_names = document.createElement("tr");
 
 	for (const [key, value] of Object.entries(data))
 	{
@@ -13,11 +14,17 @@ function drivesBuild(data)
 
 		td.innerText = value["name"];
 		td.id = "driveStatus_"+key;
-		tr.appendChild(td);
 		td.onclick = function() { drivesUpdateAction(key); };
+		tr.appendChild(td);
+
+		td = document.createElement("td");
+		td.id = "driveStatus_media_"+key;
+		td.innerText = value["media"];
+		tr_names.appendChild(td);
 	}
 	built=true;
 	table.appendChild(tr);
+	table.appendChild(tr_names);
 	return table
 }
 built=false
@@ -72,6 +79,8 @@ function drivesLoadStatus(event)
 				{
 					drive.title = value["title"];
 				}
+				drive=document.getElementById("driveStatus_media_"+key);
+				drive.innerText = value["media"];
 			}
 		}
 	);

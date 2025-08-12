@@ -133,6 +133,7 @@ class MediaReader(object):
                 # Build drive status
                 MediaReader.drive_status[drive["drive"]]={
                         "name":drive["name"],
+                        "media":"",
                         "status":0 # 0 = free, 1 = ripping, 2 = auto loading, 3 = manual load needed 4 = waiting for drive order
                     }
 
@@ -354,7 +355,7 @@ class MediaReader(object):
         """
         # Drive update
         MediaReader.drive_status[media_sample["drive"]]["status"]=2
-        Handler.web_update(None,{"drive_status":{media_sample["drive"]:{"status":2,"title":"Initializing"}}},config_data)
+        Handler.web_update(None,{"drive_status":{media_sample["drive"]:{"status":2,"title":"Initializing","media":media_sample["name"]}}},config_data)
 
         # Init media manager
         media_manager = MediaHandlerManager()
@@ -393,9 +394,11 @@ class MediaReader(object):
         # Eject media
         media_manager.ejectMediaType(media_sample)
 
+        # queue update
+        Handler.web_update(None,{"queue":{"name":media_sample["name"],"done":True}},config_data)
         # Drive update
         MediaReader.drive_status[media_sample["drive"]]["status"]=0
-        Handler.web_update(None,{"drive_status":{media_sample["drive"]:{"status":0,"title":"Idle"}}},config_data)
+        Handler.web_update(None,{"drive_status":{media_sample["drive"]:{"status":0,"title":"Idle","media":""}}},config_data)
 
 
     def convert_data(media_sample,config_data):

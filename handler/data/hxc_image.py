@@ -32,8 +32,6 @@ class DataHandlerHXCImage(DataHandler):
         self.handle_id="DataHandlerHXCImage"
         # Set data type to handle
         self.type_id="FLUX"
-        # Default config data
-        self.config_data={}
         # Data types output
         self.data_outputs=["IMAGE"]
 

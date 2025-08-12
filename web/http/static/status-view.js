@@ -212,6 +212,18 @@ function loadStatus(event)
 	.then((data) =>
 		{
 			document.getElementById("status").replaceChildren();
+
+			data.sort(function(a, b) {
+				var adate = a.time_added.split('T')[0]+"T"+a.time_added.split('T')[1].replaceAll("-",":");
+				var bdate = b.time_added.split('T')[0]+"T"+b.time_added.split('T')[1].replaceAll("-",":");
+				var keyA = new Date(adate),
+					 keyB = new Date(bdate);
+					 // Compare the 2 dates
+					 if (keyA < keyB) return 1;
+					 if (keyA > keyB) return -1;
+					 return 0;
+			});
+
 			for (const media_sample of data)
 			{
 				table=mediaSampleView(media_sample);

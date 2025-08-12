@@ -32,7 +32,7 @@ class DataHandlerManager(object):
         self.data_types["ISO9660"] = DataHandlerISO9660()
         self.data_types["WAV"] = DataHandlerWAV()
         self.data_types["FLUX"] = DataHandlerFLUX()
-        self.data_types["farts"] = DataHandlerHXCImage()
+        self.data_types["HXC"] = DataHandlerHXCImage()
 
     def configVirtual(self,config):
         """Configure a new handler to use as a virtual data format

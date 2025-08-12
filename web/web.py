@@ -104,6 +104,8 @@ class WebInterface(object):
 
     def web_rip(self):
         """ Simple class function to send HTML to browser """
+        pprint(request.form.to_dict())
+
         media_sample={}
         media_sample["name"] = request.form['media_name']
         media_sample["media_type"] = request.form['media_type']
@@ -151,9 +153,10 @@ class WebInterface(object):
                 data["queue"] = [data["queue"]]
             for media_sample in data["queue"]:
                 media_sample.pop('config_data', None)
+                media_sample.pop('settings', None)
                 match = next((i for i, item in enumerate(self.queue) if item["name"] == media_sample["name"]), None)
                 if match is not None:
-                    self.queue[i] = media_sample
+                    self.queue[match] = media_sample
                 else:
                     self.queue.append(media_sample)
 

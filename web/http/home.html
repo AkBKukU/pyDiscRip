@@ -2,12 +2,25 @@
 
 <head>
 	<link type="text/css" rel="stylesheet" href="static/style.css">
+	<link type="text/css" rel="stylesheet" href="/static/status-drives.css">
+	<link type="text/css" rel="stylesheet" href="/static/status-view.css">
+	<style>
+	.base td
+	{
+	vertical-align: top;
+	}
+	</style>
 </head>
 
 <body>
+    <table class="base">
+    <tr>
+    <td><h1>pyDiscRip</h1></td>
+    <td><div id=status-drives></div></td>
+    <td rowspan=2>
     <fieldset class="flexFill" id="media_sample_input">
         <legend>Media Sample</legend>
-        <form action="/rip" method="POST" onsubmit="jform.prepare();  return 1;">
+        <form id="media_form" action="/rip" method="POST" onsubmit="jform.prepare();  return 1;">
 
             <div class="input_pair">
                 <label for="media_type">Type:</label>
@@ -31,22 +44,36 @@
             </div>
             <div class="input_pair">
                 <label for="media_name">Name:</label>
-                <input type="text" name="media_name" placeholder="Media Name...">
+                <input type="text" id="media_name" name="media_name" placeholder="Media Name...">
             </div>
             <div class="input_pair">
                 <label for="media_description">Description:</label>
-                <input type="text" name="media_description" placeholder="Media Description...">
+                <input type="text" id="media_description" name="media_description" placeholder="Media Description...">
             </div>
 
             <div id="config_options">
             </div>
 
             <div class="input_pair">
-                <input type="submit" value="Start Rip" />
+                <input type="button" id="send_media_form" value="Start Rip" />
             </div>
         </form>
+    </td>
+    </tr>
+
+    <tr>
+    <td><div id=queue></div>
+    </td>
+    <td><div id=status></div>
+    </td>
+    </tr>
     </fieldset>
+
+    </table>
 </body>
     <script type="text/javascript" src="static/jsonForm.js"> </script>
     <script type="text/javascript" src="static/script.js"> </script>
+  <script type="text/javascript" src="/static/status-drives.js"> </script>
+  <script type="text/javascript" src="/static/status-view.js"> </script>
+  <script type="text/javascript" src="/static/status-queue.js"> </script>
 </html>

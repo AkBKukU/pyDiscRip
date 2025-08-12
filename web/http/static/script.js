@@ -74,3 +74,21 @@ jform = new jsonForm(
 	{"top_blank":true,"form_names":false},
 	{"FLUX|diskdefs-direct":"textarea"}
 )
+
+function sendMediaForm()
+{
+	jform.prepare();
+	const data = new URLSearchParams();
+	for (const pair of new FormData(document.getElementById('media_form'))) {
+		data.append(pair[0], pair[1]);
+	}
+
+	fetch("/rip", {
+		method: 'post',
+		body: data,
+	}).then(() => {
+		document.getElementById('media_name').value = "";
+		document.getElementById('media_description').value = "";
+	});
+}
+document.getElementById('send_media_form').onclick = function() { sendMediaForm(); };
