@@ -83,6 +83,8 @@ class ControllerAutoPublisherLS(ControllerHandler):
             #
             # Run load command
             #
+            # Wait for command to finish
+            #
             # retry another bin if no disc found?
 
 
@@ -103,6 +105,8 @@ class ControllerAutoPublisherLS(ControllerHandler):
             # eject tray
             #
             # Run unload command
+            #
+            # Wait for command to finish
             #
             # leave tray open for quick loading
             #
