@@ -55,7 +55,8 @@ class ControllerAutoPublisherLS(ControllerHandler):
             "UNLOAD":"C4D0{drive}N000{bin}",
             "INIT1":"C08D9n1",
             "INIT2":"C08D9n2",
-            "INIT3":"C01D00",
+            "INIT_CAL":"C01D00",
+            "INIT_CALSKIP":"C02D01",
         }
         self.cal = [
             "c09d1n4",
@@ -141,26 +142,33 @@ class ControllerAutoPublisherLS(ControllerHandler):
             ]
 
         # Initialized
-    def write(self, ser, cmd):
+    def cmdSend(self, ser, cmd_line):
         ser.reset_input_buffer()
         ser.reset_output_buffer()
-        ser.write( bytes(cmd+"\n",'ascii',errors='ignore') )
+        ser.write( bytes(cmd_line+"\n",'ascii',errors='ignore') )
+
+        # Some commands respond multiple times
+        # Loop reading data until status line is returned
         cmd_stat=True
         while(cmd_stat):
             response = ser.read_until().decode("ascii")
-            print(f"{cmd}: {response}")
+            print(f"{cmd_line}: {response}")
             if "S01C01E00I11111000O11111111" in response:
+                # This line is returned when there are errors in the commands
                 print("Broken")
                 return
             if "PARAM" in response:
+                # Returned by the C08 calibration commands
                 cmd_stat=False
 
-            if cmd[:3].upper() in response:
+            if cmd_line[:3].upper() in response:
+                # An good status output will return the command prefix
                 cmd_stat=False
 
             if "C00" in response:
+                # Some kind of universal response that seems fine
                 cmd_stat=False
-            print(f"Found: {cmd[:3]} : {response}")
+            print(f"Found: {cmd_line[:3]} : {response}")
 
         return response
 
@@ -168,38 +176,33 @@ class ControllerAutoPublisherLS(ControllerHandler):
     def initialize(self):
         try:
             # Arm up
-            with serial.Serial(self.config_data["serial_port"],9600,timeout=10,parity=serial.PARITY_EVEN,) as ser:
+            with serial.Serial(self.config_data["serial_port"],9600,timeout=30,parity=serial.PARITY_EVEN,) as ser:
                 time.sleep(1)
-                # ser.parity=serial.PARITY_NONE
-                # ser.dtr=True
-                # ser.rts=True
-                # ser.parity=serial.PARITY_EVEN
                 ser.dtr=False
                 ser.rts=False
-                # ser.parity=serial.PARITY_EVEN
-                self.write(ser,self.cmd["INIT1"])
-                cal_test = self.write(ser,self.cmd["INIT2"])
+                self.cmdSend(ser,self.cmd["INIT1"])
+                cal_test = self.cmdSend(ser,self.cmd["INIT2"])
                 print(cal_test)
                 if "PARAM02D1" in cal_test:
-                    self.write(ser,self.cmd["INIT3"])
+                    self.cmdSend(ser,self.cmd["INIT_CAL"])
                     print( "Sending cal")
 
                     for cal_cmd in self.cal:
-                        self.write(ser,cal_cmd)
+                        self.cmdSend(ser,cal_cmd)
 
                 else:
                     print( "Already cal'ed")
-                    self.write(ser,"C02D01")
+                    self.cmdSend(ser,self.cmd["INIT_CALSKIP"])
 
                  # Load disc
-                self.write(ser,"C10D01N0005")
-                self.write(ser,"C01D01")
-                self.write(ser,"C02D02")
-                self.write(ser,"C01D01")
-                self.write(ser,"C01D02")
-                self.write(ser,"C03D01N0001")
-                self.write(ser,"C02D02")
-                self.write(ser,"C04D01N0003")
+                self.cmdSend(ser,"C10D01N0005")
+                self.cmdSend(ser,"C01D01")
+                self.cmdSend(ser,"C02D02")
+                self.cmdSend(ser,"C01D01")
+                self.cmdSend(ser,"C01D02")
+                self.cmdSend(ser,"C03D01N0001")
+                self.cmdSend(ser,"C02D02")
+                self.cmdSend(ser,"C04D01N0003")
 
             # Logic
             # Load calibration data
