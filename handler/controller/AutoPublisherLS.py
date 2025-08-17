@@ -4,6 +4,7 @@
 import os
 import sys
 import json
+import subprocess
 from pathlib import Path
 import time
 from pprint import pprint
@@ -20,6 +21,12 @@ if __name__ == "__main__":
     class ControllerHandler(object):
         def __init__(self):
             print("Totally a real class")
+        def osRun(self, cmd):
+            try:
+                result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                return result
+            except subprocess.CalledProcessError as exc:
+                print("Status : FAIL", exc.returncode, exc.output)
 
 else:
     from handler.controller.controller_handler import ControllerHandler
@@ -42,17 +49,19 @@ class ControllerAutoPublisherLS(ControllerHandler):
         # Default config data
         self.config_data={
             "looping":False,
-            "serial_port":"/dev/ttyUSB0",
-            "drives":{} # media_name, open
+            "serial_port":None,
+            "drives":[] # media_name, open
             }
+        self.ser = None
         # Looping
         # Assume opperating changes out full ripped bins with new media
         # Or possibly store disc identifier of last disc put in stack to check if is new or not
 
         # Device commands (use python string format to add params)
         self.cmd = {
-            "LOAD":"C3D0{drive}N000{bin}",
-            "UNLOAD":"C4D0{drive}N000{bin}",
+            "CLEAR_DRIVE":"C10D0{drive}N000{hopper}",
+            "LOAD":"C03D0{drive}N000{hopper}",
+            "UNLOAD":"C04D0{drive}N000{hopper}",
             "INIT1":"C08D9n1",
             "INIT2":"C08D9n2",
             "INIT_CAL":"C01D00",
@@ -124,16 +133,16 @@ class ControllerAutoPublisherLS(ControllerHandler):
             "c09d67n50",
             "c09d68n10",
             "c09d69n15",
-            "c09d21n575",
-            "c09d10n-125",
-            "c09d11n637",
-            "c09d12n1450",
-            "c09d13n2106",
-            "c09d15n-140",
-            "c09d20n1800",
-            "c09d67n50",
-            "c09d66n65",
-            "c09d51n65",
+            "c09d21n575",  # HeightRoboticArm
+            "c09d10n-125", # AngleRoboticArm
+            "c09d11n637",  # AngleSpindle1
+            "c09d12n1450", # AngleSpindle2
+            "c09d13n2106", # AngleSpindle3
+            "c09d15n-90", # AngleSpindle5 : Was -140
+            "c09d20n1800", # DownLimitSpindle
+            "c09d67n50",   # ShortTray
+            "c09d66n65",   # AutomaticTurnHeight
+            "c09d51n65",   #
             "C01D03",
             "C05D01",
             "C02D01",
@@ -142,16 +151,16 @@ class ControllerAutoPublisherLS(ControllerHandler):
             ]
 
         # Initialized
-    def cmdSend(self, ser, cmd_line):
-        ser.reset_input_buffer()
-        ser.reset_output_buffer()
-        ser.write( bytes(cmd_line+"\n",'ascii',errors='ignore') )
+    def cmdSend(self, cmd_line):
+        self.ser.reset_input_buffer()
+        self.ser.reset_output_buffer()
+        self.ser.write( bytes(cmd_line+"\n",'ascii',errors='ignore') )
 
         # Some commands respond multiple times
         # Loop reading data until status line is returned
         cmd_stat=True
         while(cmd_stat):
-            response = ser.read_until().decode("ascii")
+            response = self.ser.read_until().decode("ascii")
             print(f"{cmd_line}: {response}")
             if "S01C01E00I11111000O11111111" in response:
                 # This line is returned when there are errors in the commands
@@ -164,56 +173,108 @@ class ControllerAutoPublisherLS(ControllerHandler):
             if cmd_line[:3].upper() in response:
                 # An good status output will return the command prefix
                 cmd_stat=False
-
             if "C00" in response:
                 # Some kind of universal response that seems fine
                 cmd_stat=False
+
+            if "T10D2" in response:
+                self.drive_trayClose(2)
+
+
             print(f"Found: {cmd_line[:3]} : {response}")
 
         return response
 
 
     def initialize(self):
-        try:
-            # Arm up
-            with serial.Serial(self.config_data["serial_port"],9600,timeout=30,parity=serial.PARITY_EVEN,) as ser:
-                time.sleep(1)
-                ser.dtr=False
-                ser.rts=False
-                self.cmdSend(ser,self.cmd["INIT1"])
-                cal_test = self.cmdSend(ser,self.cmd["INIT2"])
-                print(cal_test)
-                if "PARAM02D1" in cal_test:
-                    self.cmdSend(ser,self.cmd["INIT_CAL"])
-                    print( "Sending cal")
+        self.drive_trayClose(1)
+        self.drive_trayClose(2)
+        self.drive_trayClose(3)
 
-                    for cal_cmd in self.cal:
-                        self.cmdSend(ser,cal_cmd)
+        # Arm up
+        self.ser = serial.Serial(self.config_data["serial_port"],9600,timeout=30,parity=serial.PARITY_EVEN,)
+        time.sleep(1)
+        self.ser.dtr=False
+        self.ser.rts=False
 
-                else:
-                    print( "Already cal'ed")
-                    self.cmdSend(ser,self.cmd["INIT_CALSKIP"])
+        self.cmdSend(self.cmd["INIT1"])
+        cal_test = self.cmdSend(self.cmd["INIT2"])
+        print(cal_test)
+        if "PARAM02D1" in cal_test:
+            self.cmdSend(self.cmd["INIT_CAL"])
+            print( "Sending cal")
 
-                 # Load disc
-                self.cmdSend(ser,"C10D01N0005")
-                self.cmdSend(ser,"C01D01")
-                self.cmdSend(ser,"C02D02")
-                self.cmdSend(ser,"C01D01")
-                self.cmdSend(ser,"C01D02")
-                self.cmdSend(ser,"C03D01N0001")
-                self.cmdSend(ser,"C02D02")
-                self.cmdSend(ser,"C04D01N0003")
+            for cal_cmd in self.cal:
+                self.cmdSend(cal_cmd)
 
-            # Logic
-            # Load calibration data
-            # Home
+        else:
+            print( "Already cal'ed")
+            self.cmdSend(self.cmd["INIT_CALSKIP"])
 
-            return False
+            # Load disc
+        self.drive_trayOpen(2)
+        self.cmd_unloadIfNotEmpty(2,5)
+        self.cmdSend("C01D01")
+        self.cmdSend("C02D02")
+        self.cmdSend("C01D01")
+        self.cmdSend("C01D02")
+        self.cmdSend(self.cmd["LOAD"].format(drive = 2, hopper = 1))
+        self.cmdSend("C02D02")
 
-        except Exception as e:
-            print("EMERGENCY STOP - ERROR AUTO PUBLISHER INIT")
-            sys.exit(1)
+        # Logic
+        # Load calibration data
+        # Home
 
+        return False
+
+
+    def cmd_unloadIfNotEmpty(self, drive, hopper = 5):
+
+        self.ser.reset_input_buffer()
+        self.ser.reset_output_buffer()
+        cmd_line = self.cmd["CLEAR_DRIVE"].format(drive = drive, hopper = hopper)
+        self.ser.write( bytes(cmd_line+"\n",'ascii',errors='ignore') )
+
+        # Some commands respond multiple times
+        # Loop reading data until status line is returned
+        cmd_stat=True
+        while(cmd_stat):
+            response = self.ser.read_until().decode("ascii")
+            print(f"{cmd_line}: {response}")
+
+            if cmd_line[:3].upper() in response:
+                # An good status output will return the command prefixseems fine
+                cmd_stat=False
+                print("All done")
+
+                if hopper == 5:
+                    self.drive_trayOpen(drive)
+
+            if "T10D1" in response:
+                print("Removing disc")
+
+            if "T10D2" in response:
+                print("In home position")
+                if hopper == 5:
+                    self.drive_trayClose(drive)
+
+            if "T10D3" in response:
+                print("Moving disc to bin")
+
+            if "T10D4" in response:
+                print("Disc released to bin")
+
+        if "S08" in response:
+            print("Drive was clear, continuing...")
+        elif "S04" in response:
+            print("Drive was not empty, disc removed")
+
+
+    def drive_trayOpen(self,drive):
+            self.osRun(["eject", f"{self.config_data["drives"][drive-1]}"])
+
+    def drive_trayClose(self,drive):
+            self.osRun(["eject","-t", f"{self.config_data["drives"][drive-1]}"])
 
     def load(self, drive):
         try:
@@ -268,5 +329,11 @@ class ControllerAutoPublisherLS(ControllerHandler):
 
 if __name__ == "__main__":
     controller = ControllerAutoPublisherLS()
+    controller.config_data["serial_port"] = "/dev/ttyUSB0"
+    controller.config_data["drives"] = [
+            "/dev/sr2",
+            "/dev/sr3",
+            "/dev/sr4"
+        ]
     controller.initialize()
 
