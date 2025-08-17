@@ -66,6 +66,10 @@ class ControllerAutoPublisherLS(ControllerHandler):
             "INIT2":"C08D9n2",
             "INIT_CAL":"C01D00",
             "INIT_CALSKIP":"C02D01",
+            "CLEAR_ALARM":"C01D01",
+            "HOME":"C02D01",
+            "REHOME":"C01D03",
+            "STOP":"C01D02",
         }
         self.cal = [
             "c09d1n4",
@@ -195,10 +199,11 @@ class ControllerAutoPublisherLS(ControllerHandler):
         self.ser = serial.Serial(self.config_data["serial_port"],9600,timeout=30,parity=serial.PARITY_EVEN,)
         time.sleep(1)
         self.ser.dtr=False
-        self.ser.rts=False
+        self.ser.C02D03rts=False
 
         self.cmdSend(self.cmd["INIT1"])
         cal_test = self.cmdSend(self.cmd["INIT2"])
+        self.cmdSend("C01D01")
         print(cal_test)
         if "PARAM02D1" in cal_test:
             self.cmdSend(self.cmd["INIT_CAL"])
@@ -212,14 +217,27 @@ class ControllerAutoPublisherLS(ControllerHandler):
             self.cmdSend(self.cmd["INIT_CALSKIP"])
 
             # Load disc
+
+        self.cmdSend("C07D2")
+        time.sleep(1)
+        self.cmdSend("C07D00")
+
+        self.cmdSend("C07D1")
+        time.sleep(1)
+        self.cmdSend("C07D00")
+
         self.drive_trayOpen(2)
-        self.cmd_unloadIfNotEmpty(2,5)
-        self.cmdSend("C01D01")
-        self.cmdSend("C02D02")
-        self.cmdSend("C01D01")
-        self.cmdSend("C01D02")
+        # self.cmd_unloadIfNotEmpty(2,1)
+        # self.drive_trayClose(2)
+        #self.cmdSend("C02D03")
+        #self.cmdSend(self.cmd["CLEAR_ALARM"])
+        #self.cmdSend(self.cmd["STOP"])
         self.cmdSend(self.cmd["LOAD"].format(drive = 2, hopper = 1))
+        self.cmdSend("C01D01")
         self.cmdSend("C02D02")
+
+
+        #self.cmdSend("C02D01")
 
         # Logic
         # Load calibration data
@@ -264,10 +282,13 @@ class ControllerAutoPublisherLS(ControllerHandler):
             if "T10D4" in response:
                 print("Disc released to bin")
 
+
+
         if "S08" in response:
             print("Drive was clear, continuing...")
         elif "S04" in response:
             print("Drive was not empty, disc removed")
+            self.cmdSend("C01D01")
 
 
     def drive_trayOpen(self,drive):
