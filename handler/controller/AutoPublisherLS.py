@@ -48,9 +48,22 @@ class ControllerAutoPublisherLS(ControllerHandler):
         self.type_id="AutoPublisherLS"
         # Default config data
         self.config_data={
+            "bin":1,
             "looping":False,
             "serial_port":None,
-            "drives":[] # media_name, open
+            "drives":[], # media_name, open
+            "cal":
+                {
+                    "BIN_1":637,
+                    "BIN_2":1356,
+                    "BIN_3":2106,
+                    "BIN_5":-140,
+                    "ARM_BOTTOM":1832,
+                    "DRIVE_1":575,
+                    "DRIVE_2":1050,
+                    "DRIVE_3":1450,
+                    "TRAY_SLIDE":50,
+                }
             }
         self.ser = None
         # Looping
@@ -64,11 +77,10 @@ class ControllerAutoPublisherLS(ControllerHandler):
             "UNLOAD":"C04D0{drive}N000{hopper}",
             "INIT1":"C08D9n1",
             "INIT2":"C08D9n2",
-            "INIT_CAL":"C01D00",
-            "INIT_CALSKIP":"C02D01",
+            "CAL_INIT":"C01D00",
+            "CAL_END":"C01D03",
             "CLEAR_ALARM":"C01D01",
-            "HOME":"C02D01",
-            "REHOME":"C01D03",
+            "HOME":"C02D01",,
             "STOP":"C01D02",
         }
         self.cal = [
@@ -140,17 +152,13 @@ class ControllerAutoPublisherLS(ControllerHandler):
             "c09d21n575",  # HeightRoboticArm
             "c09d10n-125", # AngleRoboticArm
             "c09d11n637",  # AngleSpindle1
-            "c09d12n1450", # AngleSpindle2
+            "c09d12n1356", # AngleSpindle2
             "c09d13n2106", # AngleSpindle3
             "c09d15n-90", # AngleSpindle5 : Was -140
-            "c09d20n1800", # DownLimitSpindle
+            "c09d20n1832", # DownLimitSpindle
             "c09d67n50",   # ShortTray
             "c09d66n65",   # AutomaticTurnHeight
-            "c09d51n65",   #
-            "C01D03",
-            "C05D01",
-            "C02D01",
-            "C05D02"
+            "c09d51n65"   #
 
             ]
 
@@ -195,26 +203,30 @@ class ControllerAutoPublisherLS(ControllerHandler):
         self.drive_trayClose(2)
         self.drive_trayClose(3)
 
-        # Arm up
         self.ser = serial.Serial(self.config_data["serial_port"],9600,timeout=30,parity=serial.PARITY_EVEN,)
         time.sleep(1)
         self.ser.dtr=False
-        self.ser.C02D03rts=False
+        # self.ser.C02D03rts=False
 
         self.cmdSend(self.cmd["INIT1"])
         cal_test = self.cmdSend(self.cmd["INIT2"])
         self.cmdSend("C01D01")
         print(cal_test)
         if "PARAM02D1" in cal_test:
-            self.cmdSend(self.cmd["INIT_CAL"])
+            self.cmdSend(self.cmd["CAL_INIT"])
             print( "Sending cal")
 
             for cal_cmd in self.cal:
                 self.cmdSend(cal_cmd)
 
+            self.cmdSend(self.cmd["CAL_END"])
+            self.cmdSend("C05D01") # Unknown
+            self.cmdSend(self.cmd["HOME"])
+            self.cmdSend("C05D02") # Unknown
+
         else:
             print( "Already cal'ed")
-            self.cmdSend(self.cmd["INIT_CALSKIP"])
+            self.cmdSend(self.cmd["HOME"])
 
             # Load disc
 
@@ -274,7 +286,9 @@ class ControllerAutoPublisherLS(ControllerHandler):
             if "T10D2" in response:
                 print("In home position")
                 if hopper == 5:
-                    self.drive_trayClose(drive)
+                    self.drive_trayClose(1)
+                    self.drive_trayClose(2)
+                    self.drive_trayClose(3)
 
             if "T10D3" in response:
                 print("Moving disc to bin")
@@ -282,12 +296,55 @@ class ControllerAutoPublisherLS(ControllerHandler):
             if "T10D4" in response:
                 print("Disc released to bin")
 
-
-
         if "S08" in response:
             print("Drive was clear, continuing...")
         elif "S04" in response:
             print("Drive was not empty, disc removed")
+            self.cmdSend("C01D01")
+
+
+    def cmd_unload(self, drive, hopper):
+
+        self.ser.reset_input_buffer()
+        self.ser.reset_output_buffer()
+        cmd_line = self.cmd["UNLOAD"].format(drive = drive, hopper = hopper)
+        self.ser.write( bytes(cmd_line+"\n",'ascii',errors='ignore') )
+
+        # Some commands respond multiple times
+        # Loop reading data until status line is returned
+        cmd_stat=True
+        while(cmd_stat):
+            response = self.ser.read_until().decode("ascii")
+            print(f"{cmd_line}: {response}")
+
+            if cmd_line[:3].upper() in response:
+                # An good status output will return the command prefixseems fine
+                cmd_stat=False
+                print("All done")
+
+                if hopper == 5:
+                    self.drive_trayOpen(drive)
+
+            if "T10D1" in response:
+                print("Removing disc")
+
+            if "T10D2" in response:
+                print("In home position")
+                if hopper == 5:
+                    self.drive_trayClose(1)
+                    self.drive_trayClose(2)
+                    self.drive_trayClose(3)
+
+            if "T10D3" in response:
+                print("Moving disc to bin")
+
+            if "T10D4" in response:
+                print("Disc released to bin")
+
+        if "S08" in response:
+            print("Disc removed, continuing...")
+        elif "S04" in response:
+            print("Drive was empty, disc no removed")
             self.cmdSend("C01D01")
 
 
