@@ -5,6 +5,7 @@ import os
 import sys
 import json
 import subprocess
+from datetime import datetime
 from pathlib import Path
 import time
 from pprint import pprint
@@ -80,8 +81,13 @@ class ControllerAutoPublisherLS(ControllerHandler):
             "CAL_INIT":"C01D00",
             "CAL_END":"C01D03",
             "CLEAR_ALARM":"C01D01",
-            "HOME":"C02D01",,
+            "HOME":"C02D01",
             "STOP":"C01D02",
+            "GRAB":"C06D01",
+            "RELEASE":"C06D00",
+            "STEPPER_OFF":"C05D00",
+            "STEPPER_ON":"C05D01",
+            "STEPPER_UNKNOWN":"C05D02",
         }
         self.cal = [
             "c09d1n4",
@@ -173,7 +179,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
         cmd_stat=True
         while(cmd_stat):
             response = self.ser.read_until().decode("ascii")
-            print(f"{cmd_line}: {response}")
+            print(f"[{str(datetime.now().isoformat())}] {cmd_line}: {response}")
             if "S01C01E00I11111000O11111111" in response:
                 # This line is returned when there are errors in the commands
                 print("Broken")
@@ -185,6 +191,10 @@ class ControllerAutoPublisherLS(ControllerHandler):
             if cmd_line[:3].upper() in response:
                 # An good status output will return the command prefix
                 cmd_stat=False
+                if "E00" not in response:
+                    print("Assuming error")
+                    self.cmdSend("C01D01")
+
             if "C00" in response:
                 # Some kind of universal response that seems fine
                 cmd_stat=False
@@ -192,16 +202,17 @@ class ControllerAutoPublisherLS(ControllerHandler):
             if "T10D2" in response:
                 self.drive_trayClose(2)
 
+            if response is None or response == "" or response == '\x15':
+                print("Assuming error")
+                cmd_stat=False
+                self.cmdSend("C01D01")
 
-            print(f"Found: {cmd_line[:3]} : {response}")
+
 
         return response
 
 
     def initialize(self):
-        self.drive_trayClose(1)
-        self.drive_trayClose(2)
-        self.drive_trayClose(3)
 
         self.ser = serial.Serial(self.config_data["serial_port"],9600,timeout=30,parity=serial.PARITY_EVEN,)
         time.sleep(1)
@@ -226,27 +237,27 @@ class ControllerAutoPublisherLS(ControllerHandler):
 
         else:
             print( "Already cal'ed")
+            self.cmdSend("C01D01")
+            self.cmdSend("C05D01") # Unknown
             self.cmdSend(self.cmd["HOME"])
 
             # Load disc
 
-        self.cmdSend("C07D2")
-        time.sleep(1)
-        self.cmdSend("C07D00")
+        self.drive_trayClose(1)
+        self.drive_trayClose(2)
+        self.drive_trayClose(3)
 
-        self.cmdSend("C07D1")
-        time.sleep(1)
-        self.cmdSend("C07D00")
 
-        self.drive_trayOpen(2)
+
+        #self.drive_trayOpen(2)
         # self.cmd_unloadIfNotEmpty(2,1)
         # self.drive_trayClose(2)
         #self.cmdSend("C02D03")
         #self.cmdSend(self.cmd["CLEAR_ALARM"])
         #self.cmdSend(self.cmd["STOP"])
-        self.cmdSend(self.cmd["LOAD"].format(drive = 2, hopper = 1))
-        self.cmdSend("C01D01")
-        self.cmdSend("C02D02")
+        # self.cmdSend(self.cmd["LOAD"].format(drive = 2, hopper = 1))
+        # self.cmdSend("C01D01")
+        # self.cmdSend("C02D02")
 
 
         #self.cmdSend("C02D01")
