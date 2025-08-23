@@ -230,7 +230,7 @@ def main():
                             "TRAY_SLIDE":50,
                             "TRAY_ANGLE":-125
                         }
-                },
+                }
             ],
             "web" : {
                 "port": 5000,
