@@ -211,7 +211,26 @@ def main():
                     "controller_type":"RoboRacerLS",
                     "id": "stacker",
                     "serial_port":"/dev/ttyUSB0"
-                }
+                },
+                {
+                    "controller_type":"AutoPublisherLS",
+                    "bin":1,
+                    "serial_port":"/dev/ttyUSB1",
+                    "drives":[], # media_name, open
+                    "cal":
+                        {
+                            "BIN_1":637,
+                            "BIN_2":1356,
+                            "BIN_3":2106,
+                            "BIN_5":-140,
+                            "ARM_BOTTOM":1832,
+                            "DRIVE_1":575,
+                            "DRIVE_2":1050,
+                            "DRIVE_3":1450,
+                            "TRAY_SLIDE":50,
+                            "TRAY_ANGLE":-125
+                        }
+                },
             ],
             "web" : {
                 "port": 5000,

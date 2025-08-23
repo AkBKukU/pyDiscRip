@@ -64,9 +64,16 @@ class ControllerAutoPublisherLS(ControllerHandler):
                     "DRIVE_2":1050,
                     "DRIVE_3":1450,
                     "TRAY_SLIDE":50,
+                    "TRAY_ANGLE":-125
                 }
             }
-        self.ser = None
+
+        # Cross instance data
+        self.instance_data={
+            "bin_load":1,
+            "bin_unload":3
+            }
+        ser = None
         # Looping
         # Assume opperating changes out full ripped bins with new media
         # Or possibly store disc identifier of last disc put in stack to check if is new or not
@@ -87,7 +94,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
             "RELEASE":"C06D00",
             "STEPPER_OFF":"C05D00",
             "STEPPER_ON":"C05D01",
-            "STEPPER_UNKNOWN":"C05D02",
+            "ENABLE_MULTISTEP":"C05D02",
         }
         self.cal = [
             "c09d1n4",
@@ -170,15 +177,17 @@ class ControllerAutoPublisherLS(ControllerHandler):
 
         # Initialized
     def cmdSend(self, cmd_line):
-        self.ser.reset_input_buffer()
-        self.ser.reset_output_buffer()
-        self.ser.write( bytes(cmd_line+"\n",'ascii',errors='ignore') )
+        ser = serial.Serial(self.config_data["serial_port"],9600,timeout=30,parity=serial.PARITY_EVEN,)
+        ser.dtr=False
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
+        ser.write( bytes(cmd_line+"\n",'ascii',errors='ignore') )
 
         # Some commands respond multiple times
         # Loop reading data until status line is returned
         cmd_stat=True
         while(cmd_stat):
-            response = self.ser.read_until().decode("ascii")
+            response = ser.read_until().decode("ascii")
             print(f"[{str(datetime.now().isoformat())}] {cmd_line}: {response}")
             if "S01C01E00I11111000O11111111" in response:
                 # This line is returned when there are errors in the commands
@@ -191,38 +200,42 @@ class ControllerAutoPublisherLS(ControllerHandler):
             if cmd_line[:3].upper() in response:
                 # An good status output will return the command prefix
                 cmd_stat=False
-                if "E00" not in response:
-                    print("Assuming error")
-                    self.cmdSend("C01D01")
 
             if "C00" in response:
                 # Some kind of universal response that seems fine
                 cmd_stat=False
 
-            if "T10D2" in response:
-                self.drive_trayClose(2)
-
             if response is None or response == "" or response == '\x15':
                 print("Assuming error")
                 cmd_stat=False
-                self.cmdSend("C01D01")
+                ser.write( bytes(self.cmd["CLEAR_ALARM"]+"\n",'ascii',errors='ignore') )
 
 
 
+        ser.close()
         return response
+
+    def setBin(self, bin_number):
+
+        # Cross instance data
+        self.instance_data={
+            "bin_load":bin_number,
+            "bin_unload": 3 if bin_number - 1 == 0 else bin_number - 1
+            }
+        #TODO Save instance data to JSON
 
 
     def initialize(self):
 
-        self.ser = serial.Serial(self.config_data["serial_port"],9600,timeout=30,parity=serial.PARITY_EVEN,)
-        time.sleep(1)
-        self.ser.dtr=False
-        # self.ser.C02D03rts=False
+        # Setup bin order stuff
+        self.setBin(self.config_data["bin"])
+
+        # ser.C02D03rts=False
 
         self.cmdSend(self.cmd["INIT1"])
         cal_test = self.cmdSend(self.cmd["INIT2"])
-        self.cmdSend("C01D01")
-        print(cal_test)
+        self.cmdSend(self.cmd["CLEAR_ALARM"])
+        print(f"cal_test: {cal_test}")
         if "PARAM02D1" in cal_test:
             self.cmdSend(self.cmd["CAL_INIT"])
             print( "Sending cal")
@@ -231,14 +244,14 @@ class ControllerAutoPublisherLS(ControllerHandler):
                 self.cmdSend(cal_cmd)
 
             self.cmdSend(self.cmd["CAL_END"])
-            self.cmdSend("C05D01") # Unknown
+            self.cmdSend(self.cmd["STEPPER_ON"]) # Unknown
             self.cmdSend(self.cmd["HOME"])
-            self.cmdSend("C05D02") # Unknown
+            self.cmdSend(self.cmd["ENABLE_MULTISTEP"])
 
         else:
             print( "Already cal'ed")
-            self.cmdSend("C01D01")
-            self.cmdSend("C05D01") # Unknown
+            self.cmdSend(self.cmd["CLEAR_ALARM"])
+            self.cmdSend(self.cmd["STEPPER_ON"]) # Unknown
             self.cmdSend(self.cmd["HOME"])
 
             # Load disc
@@ -247,40 +260,23 @@ class ControllerAutoPublisherLS(ControllerHandler):
         self.drive_trayClose(2)
         self.drive_trayClose(3)
 
-
-
-        #self.drive_trayOpen(2)
-        # self.cmd_unloadIfNotEmpty(2,1)
-        # self.drive_trayClose(2)
-        #self.cmdSend("C02D03")
-        #self.cmdSend(self.cmd["CLEAR_ALARM"])
-        #self.cmdSend(self.cmd["STOP"])
-        # self.cmdSend(self.cmd["LOAD"].format(drive = 2, hopper = 1))
-        # self.cmdSend("C01D01")
-        # self.cmdSend("C02D02")
-
-
-        #self.cmdSend("C02D01")
-
-        # Logic
-        # Load calibration data
-        # Home
-
         return False
 
 
     def cmd_unloadIfNotEmpty(self, drive, hopper = 5):
 
-        self.ser.reset_input_buffer()
-        self.ser.reset_output_buffer()
+        ser = serial.Serial(self.config_data["serial_port"],9600,timeout=30,parity=serial.PARITY_EVEN,)
+        ser.dtr=False
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
         cmd_line = self.cmd["CLEAR_DRIVE"].format(drive = drive, hopper = hopper)
-        self.ser.write( bytes(cmd_line+"\n",'ascii',errors='ignore') )
+        ser.write( bytes(cmd_line+"\n",'ascii',errors='ignore') )
 
         # Some commands respond multiple times
         # Loop reading data until status line is returned
         cmd_stat=True
         while(cmd_stat):
-            response = self.ser.read_until().decode("ascii")
+            response = ser.read_until().decode("ascii")
             print(f"{cmd_line}: {response}")
 
             if cmd_line[:3].upper() in response:
@@ -311,21 +307,23 @@ class ControllerAutoPublisherLS(ControllerHandler):
             print("Drive was clear, continuing...")
         elif "S04" in response:
             print("Drive was not empty, disc removed")
-            self.cmdSend("C01D01")
+            ser.write( bytes(self.cmd["CLEAR_ALARM"]+"\n",'ascii',errors='ignore') )
 
 
     def cmd_unload(self, drive, hopper):
 
-        self.ser.reset_input_buffer()
-        self.ser.reset_output_buffer()
+        ser = serial.Serial(self.config_data["serial_port"],9600,timeout=30,parity=serial.PARITY_EVEN,)
+        ser.dtr=False
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
         cmd_line = self.cmd["UNLOAD"].format(drive = drive, hopper = hopper)
-        self.ser.write( bytes(cmd_line+"\n",'ascii',errors='ignore') )
+        ser.write( bytes(cmd_line+"\n",'ascii',errors='ignore') )
 
         # Some commands respond multiple times
         # Loop reading data until status line is returned
         cmd_stat=True
         while(cmd_stat):
-            response = self.ser.read_until().decode("ascii")
+            response = ser.read_until().decode("ascii")
             print(f"{cmd_line}: {response}")
 
             if cmd_line[:3].upper() in response:
@@ -336,28 +334,68 @@ class ControllerAutoPublisherLS(ControllerHandler):
                 if hopper == 5:
                     self.drive_trayOpen(drive)
 
-            if "T10D1" in response:
+            if "T04D1" in response:
                 print("Removing disc")
 
-            if "T10D2" in response:
+            if "T04D2" in response:
                 print("In home position")
                 if hopper == 5:
                     self.drive_trayClose(1)
                     self.drive_trayClose(2)
                     self.drive_trayClose(3)
 
-            if "T10D3" in response:
+            if "T04D3" in response:
                 print("Moving disc to bin")
 
-            if "T10D4" in response:
+            if "T04D4" in response:
                 print("Disc released to bin")
 
         if "S08" in response:
             print("Disc removed, continuing...")
         elif "S04" in response:
-            print("Drive was empty, disc no removed")
-            self.cmdSend("C01D01")
+            print("Drive was empty, disc not removed")
+            ser.write( bytes(self.cmd["CLEAR_ALARM"]+"\n",'ascii',errors='ignore') )
 
+    def cmd_load(self, drive, hopper):
+
+        ser = serial.Serial(self.config_data["serial_port"],9600,timeout=30,parity=serial.PARITY_EVEN,)
+        ser.dtr=False
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
+        cmd_line = self.cmd["LOAD"].format(drive = drive, hopper = hopper)
+        ser.write( bytes(cmd_line+"\n",'ascii',errors='ignore') )
+
+        # Some commands respond multiple times
+        # Loop reading data until status line is returned
+        cmd_stat=True
+        while(cmd_stat):
+            response = ser.read_until().decode("ascii")
+            print(f"{cmd_line}: {response}")
+
+            if cmd_line[:3].upper() in response:
+                # An good status output will return the command prefixseems fine
+                cmd_stat=False
+                print("All done")
+
+            if "T03D1" in response:
+                print("Finding disc")
+
+            if "T03D2" in response:
+                print("In home position")
+
+            if "T03D3" in response:
+                print("Moving disc to drive")
+
+            if "T03D4" in response:
+                print("Disc released to drive")
+
+        if "S04" in response:
+            print("Disc inserted, continuing...")
+            return True
+        elif "S08" in response:
+            print("Bin was empty, disc not inserted")
+            ser.write( bytes(self.cmd["CLEAR_ALARM"]+"\n",'ascii',errors='ignore') )
+            return False
 
     def drive_trayOpen(self,drive):
             self.osRun(["eject", f"{self.config_data["drives"][drive-1]}"])
@@ -366,29 +404,54 @@ class ControllerAutoPublisherLS(ControllerHandler):
             self.osRun(["eject","-t", f"{self.config_data["drives"][drive-1]}"])
 
     def load(self, drive):
-        try:
             # Logic
             #
+
+            #TODO - Read instance data from JSON
+            instance = {}
+
+            # Wait if the arm is doing another task
+            instance["active"] = False #TODO - get status from json
+            if instance["active"]:
+                time.sleep(1)
+                #TODO - reload json data
+
             # Find which bin has new media (internally tracked)
+            bin_load = self.instance_data["bin_load"]
             # Get drive ID from drive path
+            drive_load=self.config_data["drives"].index(drive)+1
             #
             # Check if tray was only left open (internally tracked)
-            # False: open
-            #
+            instance[drive]=True
+            if instance[drive]:
+                # False: open
+                self.drive_trayOpen(drive_load)
+
             # Close all other trays if open
-            #
+            for i in range(1, 3):
+                if i != drive_load:
+                    self.drive_trayClose(i)
+
+            end = self.instance_data["bin_unload"]
+            loading_disc=True
             # Run load command
-            #
-            # Wait for command to finish
+            while(loading_disc):
+
+                if self.cmd_load(drive_load, bin_load):
+                    loading_disc=False
+                else:
+                    self.setBin(self.instance_data["bin_load"]+1)
+                    bin_load = self.instance_data["bin_load"]
+                    if self.instance_data["bin_load"] == end:
+                        print("No discs found")
+                        sys.exit(0) # TODO - Don't exit
             #
             # retry another bin if no disc found?
 
+            self.drive_trayClose(drive_load)
 
             return False
 
-        except Exception as e:
-            print("EMERGENCY STOP - ERROR LOADING AUTO PUBLISHER")
-            sys.exit(1)
 
 
     def eject(self, drive):
@@ -426,3 +489,4 @@ if __name__ == "__main__":
         ]
     controller.initialize()
 
+    controller.load("/dev/sr2")
