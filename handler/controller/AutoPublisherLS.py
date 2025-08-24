@@ -29,6 +29,14 @@ if __name__ == "__main__":
             except subprocess.CalledProcessError as exc:
                 print("Status : FAIL", exc.returncode, exc.output)
 
+        def ensureDir(self,path):
+            try:
+                if not os.path.exists(path):
+                    os.makedirs(path)
+            except Exception as e:
+                sys.exit(1)
+            return path
+
 else:
     from handler.controller.controller_handler import ControllerHandler
 
@@ -47,6 +55,8 @@ class ControllerAutoPublisherLS(ControllerHandler):
         super().__init__()
         # Set media type to handle
         self.type_id="AutoPublisherLS"
+        # Default id
+        self.controller_id = "apls"
         # Default config data
         self.config_data={
             "bin":1,
@@ -71,7 +81,14 @@ class ControllerAutoPublisherLS(ControllerHandler):
         # Cross instance data
         self.instance_data={
             "bin_load":1,
-            "bin_unload":3
+            "bin_unload":3,
+            "bin_count": [
+                0,
+                0,
+                50
+                ],
+            "drive_open":[False,False,False],
+            "active":False
             }
         ser = None
         # Looping
@@ -85,11 +102,19 @@ class ControllerAutoPublisherLS(ControllerHandler):
             "UNLOAD":"C04D0{drive}N000{hopper}",
             "INIT1":"C08D9n1",
             "INIT2":"C08D9n2",
+            # System
             "CAL_INIT":"C01D00",
-            "CAL_END":"C01D03",
             "CLEAR_ALARM":"C01D01",
-            "HOME":"C02D01",
             "STOP":"C01D02",
+            "CAL_END":"C01D03",
+            # Move Postion
+            "HOME":"C02D01",
+            "HOME_Y":"C02D02",
+            "HOME_X":"C02D03",
+            # Move Arm,
+            "MOVE_STOP":"C07D0",
+            "MOVE_DOWN":"C07D2",
+            # Disc Clamp
             "GRAB":"C06D01",
             "RELEASE":"C06D00",
             "STEPPER_OFF":"C05D00",
@@ -175,7 +200,26 @@ class ControllerAutoPublisherLS(ControllerHandler):
 
             ]
 
-        # Initialized
+    def instance_save(self, instance):
+
+        tmp=self.ensureDir("/tmp/discrip/apls/"+self.controller_id)
+
+        if instance is None:
+                os.remove(f"{tmp}/instance.json")
+                return
+
+        with open(f"{tmp}/instance.json", 'w', encoding="utf-8") as output:
+            output.write(json.dumps(instance, indent=4))
+
+
+    def instance_get(self):
+
+        tmp=self.ensureDir("/tmp/discrip/apls/"+self.controller_id)
+        if os.path.isfile(f"{tmp}/instance.json"):
+            with open(f"{tmp}/instance.json", newline='') as output:
+                return json.load(output)
+
+
     def cmdSend(self, cmd_line):
         ser = serial.Serial(self.config_data["serial_port"],9600,timeout=30,parity=serial.PARITY_EVEN,)
         ser.dtr=False
@@ -218,12 +262,14 @@ class ControllerAutoPublisherLS(ControllerHandler):
     def setBin(self, bin_number):
 
         # Cross instance data
-        self.instance_data={
-            "bin_load":bin_number,
-            "bin_unload": 3 if bin_number - 1 == 0 else bin_number - 1
-            }
-        #TODO Save instance data to JSON
+        self.instance_data["bin_load"]=bin_number
+        self.instance_data["bin_unload"]= 3 if bin_number - 1 == 0 else bin_number - 1
 
+        # Assume unloading bin is empty
+        self.instance_data["bin_count"][self.instance_data["bin_unload"]-1]=0
+
+        #TODO Save instance data to JSON
+        self.instance_save(self.instance_data)
 
     def initialize(self):
 
@@ -391,10 +437,12 @@ class ControllerAutoPublisherLS(ControllerHandler):
 
         if "S04" in response:
             print("Disc inserted, continuing...")
+            self.cmdSend(self.cmd["HOME_Y"])
             return True
         elif "S08" in response:
             print("Bin was empty, disc not inserted")
             ser.write( bytes(self.cmd["CLEAR_ALARM"]+"\n",'ascii',errors='ignore') )
+            self.cmdSend(self.cmd["HOME_Y"])
             return False
 
     def drive_trayOpen(self,drive):
@@ -403,34 +451,98 @@ class ControllerAutoPublisherLS(ControllerHandler):
     def drive_trayClose(self,drive):
             self.osRun(["eject","-t", f"{self.config_data["drives"][drive-1]}"])
 
+    def active(self,state=None):
+
+            if state is None:
+                # Wait if the arm is doing another task
+                while self.instance_data["active"]:
+                    time.sleep(1)
+                    #TODO - reload json data
+                    self.instance_data = self.instance_get()
+
+                self.instance_data["active"]=True
+                self.instance_save(self.instance_data)
+                return
+            else:
+                self.instance_data["active"]=state
+                self.instance_save(self.instance_data)
+
+
+    def unload_low(self, drive):
+
+        ser = serial.Serial(self.config_data["serial_port"],9600,timeout=30,parity=serial.PARITY_EVEN,)
+        ser.dtr=False
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
+        cmd_line = self.cmd["UNLOAD"].format(drive = drive, hopper = 1)
+        ser.write( bytes(cmd_line+"\n",'ascii',errors='ignore') )
+
+        # Some commands respond multiple times
+        # Loop reading data until status line is returned
+        cmd_stat=True
+        while(cmd_stat):
+            response = ser.read_until().decode("ascii")
+            print(f"{cmd_line}: {response}")
+
+            if cmd_line[:3].upper() in response:
+                # An good status output will return the command prefixseems fine
+                cmd_stat=False
+                print("All done")
+
+            if "T04D1" in response:
+                print("Removing disc")
+
+            if "T04D2" in response:
+                print("Homed")
+                ser.write( bytes(self.cmd["STOP"]+"\n",'ascii',errors='ignore') )
+                # Instantly reclamp disc before it falls
+                ser.write( bytes(self.cmd["GRAB"]+"\n",'ascii',errors='ignore') )
+
+
+        if "S08" in response:
+            print("Disc removed, continuing...")
+        elif "S04" in response:
+            print("Drive was empty, disc not removed")
+            #ser.write( bytes(self.cmd["CLEAR_ALARM"]+"\n",'ascii',errors='ignore') )
+
+        self.cmdSend(self.cmd["HOME_Y"])
+
+        self.cmdSend("C02D1"+str(self.instance_data["bin_unload"]))
+        self.cmdSend(self.cmd["MOVE_DOWN"])
+        distance = 100-self.instance_data["bin_count"][self.instance_data["bin_unload"]-1]
+        time.sleep(5 * (distance/100))
+        self.cmdSend(self.cmd["MOVE_STOP"])
+        self.cmdSend(self.cmd["RELEASE"])
+        self.cmdSend(self.cmd["HOME_Y"])
+        return
+
     def load(self, drive):
             # Logic
             #
 
             #TODO - Read instance data from JSON
-            instance = {}
+            self.instance_data = self.instance_get()
 
-            # Wait if the arm is doing another task
-            instance["active"] = False #TODO - get status from json
-            if instance["active"]:
-                time.sleep(1)
-                #TODO - reload json data
+            self.active()
 
             # Find which bin has new media (internally tracked)
             bin_load = self.instance_data["bin_load"]
             # Get drive ID from drive path
             drive_load=self.config_data["drives"].index(drive)+1
-            #
-            # Check if tray was only left open (internally tracked)
-            instance[drive]=True
-            if instance[drive]:
-                # False: open
-                self.drive_trayOpen(drive_load)
-
             # Close all other trays if open
-            for i in range(1, 3):
+            for i in range(1, 4):
                 if i != drive_load:
                     self.drive_trayClose(i)
+                    self.instance_data["drive_open"][i-1]=False
+            # Check if tray was only left open (internally tracked)
+            if not self.instance_data["drive_open"][drive_load-1]:
+                # False: open
+                self.drive_trayOpen(drive_load)
+                self.instance_data["drive_open"][drive_load-1]=True
+                time.sleep(5)
+
+            self.instance_save(self.instance_data)
+
 
             end = self.instance_data["bin_unload"]
             loading_disc=True
@@ -440,36 +552,49 @@ class ControllerAutoPublisherLS(ControllerHandler):
                 if self.cmd_load(drive_load, bin_load):
                     loading_disc=False
                 else:
+                    # retry another bin if no disc found?
                     self.setBin(self.instance_data["bin_load"]+1)
                     bin_load = self.instance_data["bin_load"]
                     if self.instance_data["bin_load"] == end:
                         print("No discs found")
                         sys.exit(0) # TODO - Don't exit
-            #
-            # retry another bin if no disc found?
+
 
             self.drive_trayClose(drive_load)
+            self.instance_data["drive_open"][drive_load-1]=False
 
+            self.active(False)
             return False
 
 
 
     def eject(self, drive):
         try:
+            self.instance_data = self.instance_get()
+            # Wait for robot to be free
+            self.active()
             # Logic
             #
             # Find which bin has old media (internally tracked)
             # Get drive ID from drive path
-            #
+            drive_unload=self.config_data["drives"].index(drive)+1
+            # Close all other trays if open
+            for i in range(1, 4):
+                if i != drive_unload:
+                    self.drive_trayClose(i)
+                    self.instance_data["drive_open"][i-1]=False
             # eject tray
+            self.drive_trayOpen(drive_unload)
+            self.instance_save(self.instance_data)
+            time.sleep(5)
             #
             # Run unload command
-            #
-            # Wait for command to finish
-            #
+            self.unload_low(drive_unload)
+            self.instance_data["bin_count"][self.instance_data["bin_unload"]-1]+=1
             # leave tray open for quick loading
-            #
+            self.instance_data["drive_open"][drive_unload-1]=True
 
+            self.active(False)
             return True
 
         except Exception as e:
@@ -488,5 +613,12 @@ if __name__ == "__main__":
             "/dev/sr4"
         ]
     controller.initialize()
+    time.sleep(5)
 
-    controller.load("/dev/sr2")
+    count = 3
+    while count:
+        controller.load("/dev/sr2")
+        time.sleep(3)
+        controller.eject("/dev/sr2")
+        count -= 1
+

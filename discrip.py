@@ -214,6 +214,7 @@ def main():
                 },
                 {
                     "controller_type":"AutoPublisherLS",
+                    "id": "apls",
                     "bin":1,
                     "serial_port":"/dev/ttyUSB1",
                     "drives":[], # media_name, open
