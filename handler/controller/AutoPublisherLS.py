@@ -727,7 +727,6 @@ class ControllerAutoPublisherLS(ControllerHandler):
                     self.instance_data["drive_open"][i-1]=False
             # eject tray
             self.drive_trayOpen(drive_unload)
-            self.instance_save(self.instance_data)
             time.sleep(5) # Wait for tray action
 
             # Run unload command
@@ -736,6 +735,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
             self.instance_data["bin_count"][self.instance_data["bin_unload"]-1]+=1
             # leave tray open for quick loading
             self.instance_data["drive_open"][drive_unload-1]=True
+            self.instance_save(self.instance_data)
             # Release active state
             self.active(False)
             return True
