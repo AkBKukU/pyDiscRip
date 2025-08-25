@@ -212,7 +212,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
         if instance is None:
             if os.path.isfile(f"{tmp}/instance.json"):
                 os.remove(f"{tmp}/instance.json")
-                return
+            return
 
         with open(f"{tmp}/instance.json", 'w', encoding="utf-8") as output:
             output.write(json.dumps(instance, indent=4))
