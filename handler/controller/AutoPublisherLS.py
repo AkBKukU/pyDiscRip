@@ -210,6 +210,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
         tmp=self.ensureDir("/tmp/discrip/apls/"+self.controller_id)
         # If instance is None delete existing file
         if instance is None:
+            if os.path.isfile(f"{tmp}/instance.json"):
                 os.remove(f"{tmp}/instance.json")
                 return
 
@@ -250,22 +251,22 @@ class ControllerAutoPublisherLS(ControllerHandler):
 
         """
 
-            # Block execution until robot is inactive
-            if state is None:
-                # Wait if the arm is doing another task
-                while self.instance_data["active"]:
-                    time.sleep(1)
-                    #TODO - reload json data
-                    self.instance_data = self.instance_get()
+        # Block execution until robot is inactive
+        if state is None:
+            # Wait if the arm is doing another task
+            while self.instance_data["active"]:
+                time.sleep(1)
+                #TODO - reload json data
+                self.instance_data = self.instance_get()
 
-                # Claim active status and perform action
-                self.instance_data["active"]=True
-                self.instance_save(self.instance_data)
-                return
-            else:
-                # Set active status to provided value
-                self.instance_data["active"]=state
-                self.instance_save(self.instance_data)
+            # Claim active status and perform action
+            self.instance_data["active"]=True
+            self.instance_save(self.instance_data)
+            return
+        else:
+            # Set active status to provided value
+            self.instance_data["active"]=state
+            self.instance_save(self.instance_data)
 
 
     def initialize(self):
