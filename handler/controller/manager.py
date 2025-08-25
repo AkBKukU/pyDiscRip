@@ -9,6 +9,7 @@ from pprint import pprint
 # Internal Modules
 from handler.controller.RoboRacerLS import ControllerRoboRacerLS
 from handler.controller.AutoPublisherLS import ControllerAutoPublisherLS
+from handler.controller.DiscRobotGeneric import ControllerDiscRobotGeneric
 from handler.controller.gw import ControllerGw
 # Testing only
 from handler.media.dummy import MediaHandlerDummy
@@ -29,6 +30,7 @@ class ControllerHandlerManager(object):
         self.controller_types={}
         self.controller_types["RoboRacerLS"] = ControllerRoboRacerLS()
         self.controller_types["AutoPublisherLS"] = ControllerAutoPublisherLS()
+        self.controller_types["DiscRobotGeneric"] = ControllerDiscRobotGeneric()
         self.controller_types["Greaseweazle"] = ControllerGw()
 
     def getController(self,controller_type):
