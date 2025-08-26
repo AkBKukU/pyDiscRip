@@ -212,13 +212,13 @@ class ControllerDiscRobotGeneric(ControllerHandler):
             # Read response
             cmd_stat=True
             while(cmd_stat):
-                response = ser.read_until().decode("ascii")
+                response = ser.read().decode("ascii")
 
                 # Generic universal response that seems fine
-                if "E" in response:
+                if "X" in response:
                     cmd_stat=False
 
-                if "X" in response:
+                if "E" in response:
                     cmd_stat=False
                     print("Error response returned, exiting to protect hardware")
                     sys.exit(0)
@@ -283,7 +283,7 @@ class ControllerDiscRobotGeneric(ControllerHandler):
         self.instance_save(self.instance_data)
 
         # Attempt load
-        if "E" in self.cmdSend(self.cmd["LOAD"]):
+        if "X" in self.cmdSend(self.cmd["LOAD"]):
             # Loaded disc
             if self.config_data["debug_print"]:
                 print("Disc loaded")
@@ -327,7 +327,7 @@ class ControllerDiscRobotGeneric(ControllerHandler):
             time.sleep(5) # Wait for tray action
 
             # Run unload command
-            if "E" in self.cmdSend(self.cmd["UNLOAD"]):
+            if "X" in self.cmdSend(self.cmd["UNLOAD"]):
                 # Loaded disc
                 if self.config_data["debug_print"]:
                     print("Disc unloaded")
