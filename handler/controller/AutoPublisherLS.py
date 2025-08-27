@@ -111,6 +111,14 @@ class ControllerAutoPublisherLS(ControllerHandler):
             "HOME":"C02D01",
             "HOME_Y":"C02D02",
             "HOME_X":"C02D03",
+            "MOVE_BIN_1":"C02D11",
+            "MOVE_BIN_2":"C02D12",
+            "MOVE_BIN_3":"C02D13",
+            "MOVE_BIN_5":"C02D15",
+            "MOVE_TRAY_1":"C02D31",
+            "MOVE_TRAY_2":"C02D12",
+            "MOVE_TRAY_3":"C02D13",
+            "MOVE_TRAY_ANGLE":"C02D04",
             # Move Arm,
             "MOVE_STOP":"C07D0",
             "MOVE_DOWN":"C07D2",
@@ -188,19 +196,44 @@ class ControllerAutoPublisherLS(ControllerHandler):
             "c09d66n65",
             "c09d67n50",
             "c09d68n10",
-            "c09d69n15",
-            "c09d21n575",  # HeightRoboticArm
-            "c09d10n-125", # AngleRoboticArm
-            "c09d11n637",  # AngleSpindle1
-            "c09d12n1356", # AngleSpindle2
-            "c09d13n2106", # AngleSpindle3
-            "c09d15n-90", # AngleSpindle5 : Was -140
-            "c09d20n1832", # DownLimitSpindle
-            "c09d67n50",   # ShortTray
-            "c09d66n65",   # AutomaticTurnHeight
-            "c09d51n65"   #
+            "c09d69n15"
 
             ]
+
+    def cmd_calibrate(self,d=None,n=None):
+
+        self.cmdSend(self.cmd["CAL_INIT"])
+
+        if d is None or n is None:
+            for cal_cmd in self.cal:
+                self.cmdSend(cal_cmd)
+
+            # Drive 1 tray height
+            self.cmdSend(f"c09d21n{self.config_data["cal"]["DRIVE_1"]}")
+            # Drive 2 tray height
+            self.cmdSend(f"c09d22n{self.config_data["cal"]["DRIVE_2"]}")
+            # Drive 3 tray height
+            self.cmdSend(f"c09d23n{self.config_data["cal"]["DRIVE_3"]}")
+            # Drive tray inset amount
+            self.cmdSend(f"c09d10n{self.config_data["cal"]["TRAY_ANGLE"]}")
+            # Bin 1 angle
+            self.cmdSend(f"c09d11n{self.config_data["cal"]["BIN_1"]}")
+            # Bin 2 angle
+            self.cmdSend(f"c09d12n{self.config_data["cal"]["BIN_2"]}")
+            # Bin 3 angle
+            self.cmdSend(f"c09d13n{self.config_data["cal"]["BIN_3"]}")
+            # Bin 5 angle
+            self.cmdSend(f"c09d15n{self.config_data["cal"]["BIN_5"]}")
+            # Arm min position
+            self.cmdSend(f"c09d20n{self.config_data["cal"]["ARM_BOTTOM"]}") # DownLimitSpindle
+            # "Short Tray" slide into position distance
+            self.cmdSend(f"c09d67n{self.config_data["cal"]["TRAY_SLIDE"]}") # ShortTray
+            self.cmdSend(f"c09d66n65")   # AutomaticTurnHeight
+            self.cmdSend(f"c09d51n65")   #
+        else:
+            self.cmdSend(f"c09d{int(d)}n{int(n)}")
+
+        self.cmdSend(self.cmd["CAL_END"])
 
     def instance_save(self, instance):
         """ Save instance state to JSON file
@@ -289,13 +322,10 @@ class ControllerAutoPublisherLS(ControllerHandler):
 
         # Check if calibration is needed on first time start up
         if "PARAM02D1" in cal_test:
-            self.cmdSend(self.cmd["CAL_INIT"])
             print( "Sending cal")
 
-            for cal_cmd in self.cal:
-                self.cmdSend(cal_cmd)
+            self.cmd_calibrate()
 
-            self.cmdSend(self.cmd["CAL_END"])
             self.cmdSend(self.cmd["STEPPER_ON"])
             self.cmdSend(self.cmd["HOME"])
             self.cmdSend(self.cmd["ENABLE_MULTISTEP"])
@@ -744,6 +774,175 @@ class ControllerAutoPublisherLS(ControllerHandler):
             print("EMERGENCY STOP - ERROR UNLOADING AUTO PUBLISHER")
             sys.exit(1)
 
+    def calibrate(self):
+        print("Welcome to the guided calibration setup for the Aleratec Auto Publisher LS")
+        input("Press enter to continue or Ctrl+C to cancel...")
+
+        print("")
+        print("For each value you will input a differece to apply to the current value.")
+        print("")
+
+        # Bin postions
+        print("First we will calibrate the position of the arm for each bin")
+        self.cmdSend(self.cmd["HOME"])
+        print("")
+
+        # Bin 1
+        print("Bin 1 position")
+        diff = None
+        while( diff != 0):
+            self.cmdSend(self.cmd["MOVE_BIN_1"])
+            diff = int(input(f"Input change ( Current: {self.config_data["cal"]["BIN_1"]}, Last change: {diff}): ").strip() or "0")
+            self.config_data["cal"]["BIN_1"] += diff
+            self.cmd_calibrate(self,d=11,n=self.config_data["cal"]["BIN_1"])
+            self.cmdSend(self.cmd["HOME_X"])
+
+        # Bin 2
+        print("Bin 2 position")
+        diff = None
+        while( diff != 0):
+            self.cmdSend(self.cmd["MOVE_BIN_2"])
+            diff = int(input(f"Input change ( Current: {self.config_data["cal"]["BIN_2"]}, Last change: {diff}): ").strip() or "0")
+            self.config_data["cal"]["BIN_2"] += diff
+            self.cmd_calibrate(self,d=12,n=self.config_data["cal"]["BIN_2"])
+            self.cmdSend(self.cmd["HOME_X"])
+
+        # Bin 3
+        print("Bin 3 position")
+        diff = None
+        while( diff != 0):
+            self.cmdSend(self.cmd["MOVE_BIN_3"])
+            diff = int(input(f"Input change ( Current: {self.config_data["cal"]["BIN_3"]}, Last change: {diff}): ").strip() or "0")
+            self.config_data["cal"]["BIN_3"] += diff
+            self.cmd_calibrate(self,d=13,n=self.config_data["cal"]["BIN_3"])
+            self.cmdSend(self.cmd["HOME_X"])
+
+        # Bin 5
+        print("Bin 5 position")
+        diff = None
+        while( diff != 0):
+            self.cmdSend(self.cmd["MOVE_BIN_5"])
+            diff = int(input(f"Input change ( Current: {self.config_data["cal"]["BIN_5"]}, Last change: {diff}): ").strip() or "0")
+            self.config_data["cal"]["BIN_5"] += diff
+            self.cmd_calibrate(self,d=15,n=self.config_data["cal"]["BIN_5"])
+            self.cmdSend(self.cmd["HOME_X"])
+
+        print("")
+        print("Next are going to roughly calibrate a few things before attemping more complicated tests")
+        self.cmdSend(self.cmd["HOME"])
+        print("")
+
+        # Tray angle
+        print("Arm position to drop disc into tray")
+        self.drive_trayOpen(1)
+        diff = None
+        while( diff != 0):
+            self.cmdSend(self.cmd["MOVE_TRAY_ANGLE"])
+            diff = int(input(f"Input change ( Current: {self.config_data["cal"]["TRAY_ANGLE"]}, Last change: {diff}): ").strip() or "0")
+            self.config_data["cal"]["TRAY_ANGLE"] += diff
+            self.cmd_calibrate(self,d=10,n=self.config_data["cal"]["TRAY_ANGLE"])
+            self.cmdSend(self.cmd["HOME"])
+
+        # Drive 1
+        print("Drive 1 height")
+        diff = None
+        while( diff != 0):
+            self.cmdSend(self.cmd["MOVE_TRAY_1"])
+            diff = int(input(f"Input change ( Current: {self.config_data["cal"]["DRIVE_1"]}, Last change: {diff}): ").strip() or "0")
+            self.config_data["cal"]["DRIVE_1"] += diff
+            self.cmd_calibrate(self,d=21,n=self.config_data["cal"]["DRIVE_1"])
+            self.cmdSend(self.cmd["HOME_Y"])
+
+        # Tray angle
+        print("Fine Tune: Arm position to drop disc into tray")
+        diff = None
+        while( diff != 0):
+            self.cmdSend(self.cmd["MOVE_TRAY_1"])
+            diff = int(input(f"Input change ( Current: {self.config_data["cal"]["TRAY_ANGLE"]}, Last change: {diff}): ").strip() or "0")
+            self.config_data["cal"]["TRAY_ANGLE"] += diff
+            self.cmd_calibrate(self,d=10,n=self.config_data["cal"]["TRAY_ANGLE"])
+            self.cmdSend(self.cmd["HOME"])
+
+        # Tray Slide
+        print("Short Tray Slide")
+        print("This is the fine motion where the are slowly moves the disc over the tray, it is to avoid hitting the drive bezel.")
+        self.cmdSend(self.cmd["HOME"])
+        input("Press enter when you have discs in Bin 1...")
+        print("")
+        self.drive_trayOpen(1)
+        diff = None
+        while( diff != 0):
+            self.cmdSend(self.cmd["MOVE_TRAY_1"])
+            diff = int(input(f"Input change ( Current: {self.config_data["cal"]["TRAY_SLIDE"]}, Last change: {diff}): ").strip() or "0")
+            self.config_data["cal"]["TRAY_SLIDE"] += diff
+            self.cmd_calibrate(self,d=67,n=self.config_data["cal"]["TRAY_SLIDE"])
+            print("Attemping disc load as test..")
+            self.cmd_load(1, 1)
+            time.sleep(1)
+            self.cmd_unload(1, 1)
+            self.cmdSend(self.cmd["HOME_Y"])
+
+        self.drive_trayClose(1)
+
+        print("")
+        print("Next we will fine calibrate the drive tray heights")
+        print("")
+
+        # Drive 1
+        print("Drive 1 height")
+        self.drive_trayOpen(1)
+        diff = None
+        while( diff != 0):
+            self.cmdSend(self.cmd["MOVE_TRAY_1"])
+            diff = int(input(f"Input change ( Current: {self.config_data["cal"]["DRIVE_1"]}, Last change: {diff}): ").strip() or "0")
+            self.config_data["cal"]["DRIVE_1"] += diff
+            self.cmd_calibrate(self,d=21,n=self.config_data["cal"]["DRIVE_1"])
+            print("Attemping disc load as test..")
+            self.cmd_load(1, 1)
+            time.sleep(1)
+            self.cmd_unload(1, 1)
+            self.cmdSend(self.cmd["HOME_Y"])
+        self.drive_trayClose(1)
+
+        # Drive 2
+        print("Drive 2 height")
+        self.drive_trayOpen(2)
+        diff = None
+        while( diff != 0):
+            self.cmdSend(self.cmd["MOVE_TRAY_2"])
+            diff = int(input(f"Input change ( Current: {self.config_data["cal"]["DRIVE_2"]}, Last change: {diff}): ").strip() or "0")
+            self.config_data["cal"]["DRIVE_2"] += diff
+            self.cmd_calibrate(self,d=22,n=self.config_data["cal"]["DRIVE_2"])
+            print("Attemping disc load as test..")
+            self.cmd_load(2, 1)
+            time.sleep(1)
+            self.cmd_unload(2, 1)
+            self.cmdSend(self.cmd["HOME_Y"])
+        self.drive_trayClose(2)
+
+        # Drive 3
+        print("Drive 3 height")
+        self.drive_trayOpen(3)
+        diff = None
+        while( diff != 0):
+            self.cmdSend(self.cmd["MOVE_TRAY_3"])
+            diff = int(input(f"Input change ( Current: {self.config_data["cal"]["DRIVE_3"]}, Last change: {diff}): ").strip() or "0")
+            self.config_data["cal"]["DRIVE_3"] += diff
+            self.cmd_calibrate(self,d=23,n=self.config_data["cal"]["DRIVE_3"])
+            print("Attemping disc load as test..")
+            self.cmd_load(3, 1)
+            time.sleep(1)
+            self.cmd_unload(3, 1)
+            self.cmdSend(self.cmd["HOME_Y"])
+        self.drive_trayClose(3)
+
+        print("")
+        print("Calibration complete! Here are your settings:")
+        print("")
+        pprint(self.config_data["cal"])
+
+
+        return
 
 
 
