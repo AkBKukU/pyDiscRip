@@ -222,11 +222,14 @@ class MediaHandlerCD(MediaOptical):
         # Determine number of seesions to rip
         self.countSessions(media_sample)
         # Get metadata for audio CD
-        data_output = self.fetchMetadata(media_sample)
+        try:
+            data_output = self.fetchMetadata(media_sample)
 
-        # Add metadata if was found
-        if data_output is not None:
-                datas.append(data_output)
+            # Add metadata if was found
+            if data_output is not None:
+                    datas.append(data_output)
+        except Exception as e:
+            print("Unable to fetch musicbrainz data")
 
         # cd-info log
         result = self.osRun(["cd-info", f"{media_sample["drive"]}"])
