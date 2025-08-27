@@ -67,16 +67,19 @@ class ControllerAutoPublisherLS(ControllerHandler):
             "drives":[], # media_name, open
             "cal":
                 {
-                    "BIN_1":637,
-                    "BIN_2":1356,
-                    "BIN_3":2106,
-                    "BIN_5":-140,
+                    "BIN_1":652,
+                    "BIN_2":1369,
+                    "BIN_3":2111,
+                    "BIN_5":-75,
                     "ARM_BOTTOM":1832,
-                    "DRIVE_1":575,
-                    "DRIVE_2":1050,
-                    "DRIVE_3":1450,
+                    "DRIVE_1":598,
+                    "DRIVE_2":1024,
+                    "DRIVE_3":1464,
                     "TRAY_SLIDE":50,
-                    "TRAY_ANGLE":-125
+                    "DISC_MASH":10,
+                    "TRAY_DUCK_UNLOAD":60,
+                    "TRAY_DUCK_LOAD":60,
+                    "TRAY_ANGLE":-140
                 }
             }
 
@@ -116,8 +119,8 @@ class ControllerAutoPublisherLS(ControllerHandler):
             "MOVE_BIN_3":"C02D13",
             "MOVE_BIN_5":"C02D15",
             "MOVE_TRAY_1":"C02D31",
-            "MOVE_TRAY_2":"C02D12",
-            "MOVE_TRAY_3":"C02D13",
+            "MOVE_TRAY_2":"C02D32",
+            "MOVE_TRAY_3":"C02D33",
             "MOVE_TRAY_ANGLE":"C02D04",
             # Move Arm,
             "MOVE_STOP":"C07D0",
@@ -195,19 +198,22 @@ class ControllerAutoPublisherLS(ControllerHandler):
             "c09d65n1500",
             "c09d66n65",
             "c09d67n50",
-            "c09d68n10",
+            "c09d68n10", # Amount to continue down after sensor detects disc before activting clamp
             "c09d69n15"
 
             ]
 
     def cmd_calibrate(self,d=None,n=None):
-
+        print("Seding Cal Data")
         self.cmdSend(self.cmd["CAL_INIT"])
 
-        if d is None or n is None:
+        #if d is None or n is None:
+        if 1:
+            print("Full cal")
             for cal_cmd in self.cal:
                 self.cmdSend(cal_cmd)
 
+            pprint(self.config_data["cal"])
             # Drive 1 tray height
             self.cmdSend(f"c09d21n{self.config_data["cal"]["DRIVE_1"]}")
             # Drive 2 tray height
@@ -228,12 +234,20 @@ class ControllerAutoPublisherLS(ControllerHandler):
             self.cmdSend(f"c09d20n{self.config_data["cal"]["ARM_BOTTOM"]}") # DownLimitSpindle
             # "Short Tray" slide into position distance
             self.cmdSend(f"c09d67n{self.config_data["cal"]["TRAY_SLIDE"]}") # ShortTray
-            self.cmdSend(f"c09d66n65")   # AutomaticTurnHeight
-            self.cmdSend(f"c09d51n65")   #
+            # "Short Tray" slide into position distance
+            self.cmdSend(f"c09d66n{self.config_data["cal"]["TRAY_DUCK_UNLOAD"]}") # ShortTray
+            self.cmdSend(f"c09d51n{self.config_data["cal"]["TRAY_DUCK_LOAD"]}") # ShortTray
+            # self.cmdSend(f"c09d51n65")   #
         else:
-            self.cmdSend(f"c09d{int(d)}n{int(n)}")
+
+            print(f"Single Cal: c09d{int(d)}n{int(n)}")
+            response = self.cmdSend(f"c09d{int(d)}n{int(n)}")
+            print(f"Response: {response}")
 
         self.cmdSend(self.cmd["CAL_END"])
+        self.cmdSend(self.cmd["STEPPER_ON"])
+        self.cmdSend(self.cmd["HOME"])
+        self.cmdSend(self.cmd["ENABLE_MULTISTEP"])
 
     def instance_save(self, instance):
         """ Save instance state to JSON file
@@ -326,9 +340,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
 
             self.cmd_calibrate()
 
-            self.cmdSend(self.cmd["STEPPER_ON"])
             self.cmdSend(self.cmd["HOME"])
-            self.cmdSend(self.cmd["ENABLE_MULTISTEP"])
 
         else:
             print( "Already cal'ed")
@@ -362,35 +374,39 @@ class ControllerAutoPublisherLS(ControllerHandler):
         # Read response
         cmd_stat=True
         while(cmd_stat):
-            response = ser.read_until().decode("ascii")
+            try:
+                response = ser.read_until().decode("ascii")
 
-            if self.config_data["debug_print"]:
-                print(f"[{str(datetime.now().isoformat())}] {cmd_line}: {response}")
+                if self.config_data["debug_print"]:
+                    print(f"[{str(datetime.now().isoformat())}] {cmd_line}: {response}")
 
-            # Generic large error
-            if "S01C01E00I11111000O11111111" in response:
-                # This line is returned when there are errors in the commands
-                print("Command failed")
-                return
+                # Generic large error
+                if "S01C01E00I11111000O11111111" in response:
+                    # This line is returned when there are errors in the commands
+                    print("Command failed")
+                    return
 
-            # Value returned
-            if "PARAM" in response:
-                # Returned by the C08 calibration commands
-                cmd_stat=False
+                # Value returned
+                if "PARAM" in response:
+                    # Returned by the C08 calibration commands
+                    cmd_stat=False
 
-            # Valid response prefix
-            if cmd_line[:3].upper() in response:
-                cmd_stat=False
+                # Valid response prefix
+                if cmd_line[:3].upper() in response:
+                    cmd_stat=False
 
-            # Generic universal response that seems fine
-            if "C00" in response:
-                cmd_stat=False
+                # Generic universal response that seems fine
+                if "C00" in response:
+                    cmd_stat=False
 
-            # No valid response
-            if response is None or response == "" or response == '\x15':
-                print("Assuming error")
-                cmd_stat=False
-                ser.write( bytes(self.cmd["CLEAR_ALARM"]+"\n",'ascii',errors='ignore') )
+                # No valid response
+                if response is None or response == "" or response == '\x15':
+                    print("Assuming error")
+                    cmd_stat=False
+                    ser.write( bytes(self.cmd["CLEAR_ALARM"]+"\n",'ascii',errors='ignore') )
+
+            except Exception as e:
+                print("Unexpected response error")
 
         ser.close()
         return response
@@ -620,28 +636,40 @@ class ControllerAutoPublisherLS(ControllerHandler):
         ser.reset_input_buffer()
         ser.reset_output_buffer()
         # Run C4 unload
-        cmd_line = self.cmd["UNLOAD"].format(drive = drive, hopper = 1)
+        cmd_line = self.cmd["UNLOAD"].format(drive = drive, hopper = self.instance_data["bin_unload"])
         ser.write( bytes(cmd_line+"\n",'ascii',errors='ignore') )
 
         # Process command progress
         cmd_stat=True
         while(cmd_stat):
-            response = ser.read_until().decode("ascii")
-            print(f"{cmd_line}: {response}")
+            try:
+                response = ser.read_until().decode("ascii")
+                print(f"{cmd_line}: {response}")
 
-            if "T04D1" in response:
-                if self.config_data["debug_print"]:
-                    print("Removing disc")
+                if "T04D1" in response:
+                    if self.config_data["debug_print"]:
+                        print("Removing disc")
+                if "T04D2" in response:
+                    if self.config_data["debug_print"]:
+                        print("Moving to bin")
 
-            if "T04D2" in response:
-                if self.config_data["debug_print"]:
-                    print("Disc removed and arm raised")
-                # Stop procedure
-                ser.write( bytes(self.cmd["STOP"]+"\n",'ascii',errors='ignore') )
-                # Instantly reclamp disc before it falls
-                ser.write( bytes(self.cmd["GRAB"]+"\n",'ascii',errors='ignore') )
+                if "T04D3" in response:
+                    if self.config_data["debug_print"]:
+                        print("Disc removed and arm raised")
+                    # Stop procedure
+                    ser.write( bytes(self.cmd["STOP"]+"\n",'ascii',errors='ignore') )
+                    # Instantly reclamp disc before it falls
+                    ser.write( bytes(self.cmd["GRAB"]+"\n",'ascii',errors='ignore') )
+                    cmd_stat=False
+            except Exception as e:
+                    print("Probably dropped the disc")
+                    cmd_stat=False
+                    ser.write( bytes(self.cmd["CLEAR_ALARM"]+"\n",'ascii',errors='ignore') )
+
+
         # End C4 process
         ser.close()
+        self.cmdSend(self.cmd["GRAB"])
 
         # Custom hopper release
         self.cmdSend(self.cmd["HOME_Y"]) # Double check arm raised in case of an error
@@ -699,7 +727,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
                 # False: closed
                 self.drive_trayOpen(drive_load)
                 self.instance_data["drive_open"][drive_load-1]=True
-                time.sleep(5)
+                #time.sleep(5)
 
             # Save tray status
             self.instance_save(self.instance_data)
@@ -742,37 +770,36 @@ class ControllerAutoPublisherLS(ControllerHandler):
         Automatically switches to next bin when empty
 
         """
-        try:
-            #Read instance data from JSON
-            self.instance_data = self.instance_get()
-            # Wait until inactive
-            self.active()
+        #Read instance data from JSON
+        self.instance_data = self.instance_get()
+        # Wait until inactive
+        self.active()
 
-            # Get drive ID from drive path
-            drive_unload=self.config_data["drives"].index(drive)+1
-            # Close all other trays if open
-            for i in range(1, 4):
-                if i != drive_unload:
-                    self.drive_trayClose(i)
-                    self.instance_data["drive_open"][i-1]=False
-            # eject tray
-            self.drive_trayOpen(drive_unload)
-            time.sleep(5) # Wait for tray action
+        # Get drive ID from drive path
+        drive_unload=self.config_data["drives"].index(drive)+1
+        # Close all other trays if open
+        for i in range(1, 4):
+            if i != drive_unload:
+                self.drive_trayClose(i)
+                self.instance_data["drive_open"][i-1]=False
+        # eject tray
+        self.drive_trayOpen(drive_unload)
+        #time.sleep(5) # Wait for tray action
 
-            # Run unload command
+        # Run unload command
+        if self.instance_data["bin_count"][self.instance_data["bin_unload"]-1] == 0:
             self.unload_low(drive_unload)
-            # Add to bin count
-            self.instance_data["bin_count"][self.instance_data["bin_unload"]-1]+=1
-            # leave tray open for quick loading
-            self.instance_data["drive_open"][drive_unload-1]=True
-            self.instance_save(self.instance_data)
-            # Release active state
-            self.active(False)
-            return True
+        else:
+            self.cmd_unload(drive_unload,self.instance_data["bin_unload"])
+        # Add to bin count
+        self.instance_data["bin_count"][self.instance_data["bin_unload"]-1]+=1
+        # leave tray open for quick loading5
+        self.instance_data["drive_open"][drive_unload-1]=True
+        self.instance_save(self.instance_data)
+        # Release active state
+        self.active(False)
+        return True
 
-        except Exception as e:
-            print("EMERGENCY STOP - ERROR UNLOADING AUTO PUBLISHER")
-            sys.exit(1)
 
     def calibrate(self):
         print("Welcome to the guided calibration setup for the Aleratec Auto Publisher LS")
@@ -794,7 +821,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
             self.cmdSend(self.cmd["MOVE_BIN_1"])
             diff = int(input(f"Input change ( Current: {self.config_data["cal"]["BIN_1"]}, Last change: {diff}): ").strip() or "0")
             self.config_data["cal"]["BIN_1"] += diff
-            self.cmd_calibrate(self,d=11,n=self.config_data["cal"]["BIN_1"])
+            self.cmd_calibrate(d=11,n=self.config_data["cal"]["BIN_1"])
             self.cmdSend(self.cmd["HOME_X"])
 
         # Bin 2
@@ -804,7 +831,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
             self.cmdSend(self.cmd["MOVE_BIN_2"])
             diff = int(input(f"Input change ( Current: {self.config_data["cal"]["BIN_2"]}, Last change: {diff}): ").strip() or "0")
             self.config_data["cal"]["BIN_2"] += diff
-            self.cmd_calibrate(self,d=12,n=self.config_data["cal"]["BIN_2"])
+            self.cmd_calibrate(d=12,n=self.config_data["cal"]["BIN_2"])
             self.cmdSend(self.cmd["HOME_X"])
 
         # Bin 3
@@ -814,17 +841,18 @@ class ControllerAutoPublisherLS(ControllerHandler):
             self.cmdSend(self.cmd["MOVE_BIN_3"])
             diff = int(input(f"Input change ( Current: {self.config_data["cal"]["BIN_3"]}, Last change: {diff}): ").strip() or "0")
             self.config_data["cal"]["BIN_3"] += diff
-            self.cmd_calibrate(self,d=13,n=self.config_data["cal"]["BIN_3"])
+            self.cmd_calibrate(d=13,n=self.config_data["cal"]["BIN_3"])
             self.cmdSend(self.cmd["HOME_X"])
 
         # Bin 5
         print("Bin 5 position")
         diff = None
         while( diff != 0):
+             self.cmdSend(self.cmd["MOVE_TRAY_3"])
             self.cmdSend(self.cmd["MOVE_BIN_5"])
             diff = int(input(f"Input change ( Current: {self.config_data["cal"]["BIN_5"]}, Last change: {diff}): ").strip() or "0")
             self.config_data["cal"]["BIN_5"] += diff
-            self.cmd_calibrate(self,d=15,n=self.config_data["cal"]["BIN_5"])
+            self.cmd_calibrate(d=15,n=self.config_data["cal"]["BIN_5"])
             self.cmdSend(self.cmd["HOME_X"])
 
         print("")
@@ -840,7 +868,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
             self.cmdSend(self.cmd["MOVE_TRAY_ANGLE"])
             diff = int(input(f"Input change ( Current: {self.config_data["cal"]["TRAY_ANGLE"]}, Last change: {diff}): ").strip() or "0")
             self.config_data["cal"]["TRAY_ANGLE"] += diff
-            self.cmd_calibrate(self,d=10,n=self.config_data["cal"]["TRAY_ANGLE"])
+            self.cmd_calibrate(d=10,n=self.config_data["cal"]["TRAY_ANGLE"])
             self.cmdSend(self.cmd["HOME"])
 
         # Drive 1
@@ -850,21 +878,26 @@ class ControllerAutoPublisherLS(ControllerHandler):
             self.cmdSend(self.cmd["MOVE_TRAY_1"])
             diff = int(input(f"Input change ( Current: {self.config_data["cal"]["DRIVE_1"]}, Last change: {diff}): ").strip() or "0")
             self.config_data["cal"]["DRIVE_1"] += diff
-            self.cmd_calibrate(self,d=21,n=self.config_data["cal"]["DRIVE_1"])
+            self.cmd_calibrate(d=21,n=self.config_data["cal"]["DRIVE_1"])
             self.cmdSend(self.cmd["HOME_Y"])
 
-        # Tray angle
-        print("Fine Tune: Arm position to drop disc into tray")
+        Tray angle
+        print("Fine Tune: Arm position to drop disc into tray (with loading)")
         diff = None
         while( diff != 0):
             self.cmdSend(self.cmd["MOVE_TRAY_1"])
             diff = int(input(f"Input change ( Current: {self.config_data["cal"]["TRAY_ANGLE"]}, Last change: {diff}): ").strip() or "0")
             self.config_data["cal"]["TRAY_ANGLE"] += diff
-            self.cmd_calibrate(self,d=10,n=self.config_data["cal"]["TRAY_ANGLE"])
+            self.cmd_calibrate(d=10,n=self.config_data["cal"]["TRAY_ANGLE"])
             self.cmdSend(self.cmd["HOME"])
+            self.cmd_load(1, 1)
+            self.drive_trayClose(1)
+            time.sleep(3)
+            self.drive_trayOpen(1)
+            self.cmd_unload(1, 1)
 
         # Tray Slide
-        print("Short Tray Slide")
+        print("Short Tray Slide, horizontal distance")
         print("This is the fine motion where the are slowly moves the disc over the tray, it is to avoid hitting the drive bezel.")
         self.cmdSend(self.cmd["HOME"])
         input("Press enter when you have discs in Bin 1...")
@@ -875,7 +908,39 @@ class ControllerAutoPublisherLS(ControllerHandler):
             self.cmdSend(self.cmd["MOVE_TRAY_1"])
             diff = int(input(f"Input change ( Current: {self.config_data["cal"]["TRAY_SLIDE"]}, Last change: {diff}): ").strip() or "0")
             self.config_data["cal"]["TRAY_SLIDE"] += diff
-            self.cmd_calibrate(self,d=67,n=self.config_data["cal"]["TRAY_SLIDE"])
+            self.cmd_calibrate(d=67,n=self.config_data["cal"]["TRAY_SLIDE"])
+            print("Attemping disc load as test..")
+            self.cmd_load(1, 1)
+            time.sleep(1)
+            self.cmd_unload(1, 1)
+            self.cmdSend(self.cmd["HOME_Y"])
+
+        # Tray duck
+        self.drive_trayOpen(1)
+        print("Short Tray Duck loading, vertical distance")
+        print("This is the fine motion where the are slowly moves the disc over the tray, it is to avoid hitting the drive bezel.")
+        print("")
+        diff = None
+        while( diff != 0):
+            self.cmdSend(self.cmd["MOVE_TRAY_1"])
+            diff = int(input(f"Input change ( Current: {self.config_data["cal"]["TRAY_DUCK_LOAD"]}, Last change: {diff}): ").strip() or "0")
+            self.config_data["cal"]["TRAY_DUCK_LOAD"] += diff
+            self.cmd_calibrate(d=68,n=self.config_data["cal"]["TRAY_DUCK_LOAD"])
+            print("Attemping disc load as test..")
+            self.cmd_load(1, 1)
+            time.sleep(1)
+            self.cmd_unload(1, 1)
+            self.cmdSend(self.cmd["HOME_Y"])
+
+        print("Short Tray Duck unloading, vertical distance")
+        print("This is the fine motion where the are slowly moves the disc over the tray, it is to avoid hitting the drive bezel.")
+        print("")
+        diff = None
+        while( diff != 0):
+            self.cmdSend(self.cmd["MOVE_TRAY_1"])
+            diff = int(input(f"Input change ( Current: {self.config_data["cal"]["TRAY_DUCK_UNLOAD"]}, Last change: {diff}): ").strip() or "0")
+            self.config_data["cal"]["TRAY_DUCK_UNLOAD"] += diff
+            self.cmd_calibrate(d=68,n=self.config_data["cal"]["TRAY_DUCK_UNLOAD"])
             print("Attemping disc load as test..")
             self.cmd_load(1, 1)
             time.sleep(1)
@@ -896,7 +961,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
             self.cmdSend(self.cmd["MOVE_TRAY_1"])
             diff = int(input(f"Input change ( Current: {self.config_data["cal"]["DRIVE_1"]}, Last change: {diff}): ").strip() or "0")
             self.config_data["cal"]["DRIVE_1"] += diff
-            self.cmd_calibrate(self,d=21,n=self.config_data["cal"]["DRIVE_1"])
+            self.cmd_calibrate(d=21,n=self.config_data["cal"]["DRIVE_1"])
             print("Attemping disc load as test..")
             self.cmd_load(1, 1)
             time.sleep(1)
@@ -912,7 +977,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
             self.cmdSend(self.cmd["MOVE_TRAY_2"])
             diff = int(input(f"Input change ( Current: {self.config_data["cal"]["DRIVE_2"]}, Last change: {diff}): ").strip() or "0")
             self.config_data["cal"]["DRIVE_2"] += diff
-            self.cmd_calibrate(self,d=22,n=self.config_data["cal"]["DRIVE_2"])
+            self.cmd_calibrate(d=22,n=self.config_data["cal"]["DRIVE_2"])
             print("Attemping disc load as test..")
             self.cmd_load(2, 1)
             time.sleep(1)
@@ -928,7 +993,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
             self.cmdSend(self.cmd["MOVE_TRAY_3"])
             diff = int(input(f"Input change ( Current: {self.config_data["cal"]["DRIVE_3"]}, Last change: {diff}): ").strip() or "0")
             self.config_data["cal"]["DRIVE_3"] += diff
-            self.cmd_calibrate(self,d=23,n=self.config_data["cal"]["DRIVE_3"])
+            self.cmd_calibrate(d=23,n=self.config_data["cal"]["DRIVE_3"])
             print("Attemping disc load as test..")
             self.cmd_load(3, 1)
             time.sleep(1)
@@ -954,13 +1019,16 @@ if __name__ == "__main__":
     """
     controller = ControllerAutoPublisherLS()
     controller.config_data["serial_port"] = "/dev/ttyUSB0"
+    controller.config_data["debug_print"] = True
     controller.config_data["drives"] = [
             "/dev/sr2",
             "/dev/sr3",
             "/dev/sr4"
         ]
     controller.initialize()
-    time.sleep(5)
+    # controller.calibrate()
+    # sys.exit(0)
+    #time.sleep(5)
 
     count = 3
     while count:
@@ -969,3 +1037,16 @@ if __name__ == "__main__":
         controller.eject("/dev/sr2")
         count -= 1
 
+    count = 3
+    while count:
+        controller.load("/dev/sr3")
+        time.sleep(3)
+        controller.eject("/dev/sr3")
+        count -= 1
+
+    count = 3
+    while count:
+        controller.load("/dev/sr4")
+        time.sleep(3)
+        controller.eject("/dev/sr4")
+        count -= 1
