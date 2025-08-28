@@ -1032,21 +1032,21 @@ if __name__ == "__main__":
 
     count = 3
     while count:
-        controller.load("/dev/sr2")
+        controller.load(controller.config_data["drives"][0])
         time.sleep(3)
-        controller.eject("/dev/sr2")
+        controller.eject(controller.config_data["drives"][0])
         count -= 1
 
     count = 3
     while count:
-        controller.load("/dev/sr3")
+        controller.load(controller.config_data["drives"][1])
         time.sleep(3)
-        controller.eject("/dev/sr3")
+        controller.eject(controller.config_data["drives"][1])
         count -= 1
 
     count = 3
     while count:
-        controller.load("/dev/sr4")
+        controller.load(controller.config_data["drives"][2])
         time.sleep(3)
-        controller.eject("/dev/sr4")
+        controller.eject(controller.config_data["drives"][2])
         count -= 1
