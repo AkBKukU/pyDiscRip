@@ -848,7 +848,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
         print("Bin 5 position")
         diff = None
         while( diff != 0):
-             self.cmdSend(self.cmd["MOVE_TRAY_3"])
+            self.cmdSend(self.cmd["MOVE_TRAY_3"])
             self.cmdSend(self.cmd["MOVE_BIN_5"])
             diff = int(input(f"Input change ( Current: {self.config_data["cal"]["BIN_5"]}, Last change: {diff}): ").strip() or "0")
             self.config_data["cal"]["BIN_5"] += diff
@@ -881,7 +881,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
             self.cmd_calibrate(d=21,n=self.config_data["cal"]["DRIVE_1"])
             self.cmdSend(self.cmd["HOME_Y"])
 
-        Tray angle
+        # Tray angle
         print("Fine Tune: Arm position to drop disc into tray (with loading)")
         diff = None
         while( diff != 0):
@@ -1021,8 +1021,8 @@ if __name__ == "__main__":
     controller.config_data["serial_port"] = "/dev/ttyUSB0"
     controller.config_data["debug_print"] = True
     controller.config_data["drives"] = [
+            "/dev/sr1",
             "/dev/sr2",
-            "/dev/sr3",
             "/dev/sr4"
         ]
     controller.initialize()
