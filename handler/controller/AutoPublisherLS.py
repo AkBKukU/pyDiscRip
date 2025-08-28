@@ -787,10 +787,7 @@ class ControllerAutoPublisherLS(ControllerHandler):
         #time.sleep(5) # Wait for tray action
 
         # Run unload command
-        if self.instance_data["bin_count"][self.instance_data["bin_unload"]-1] == 0:
-            self.unload_low(drive_unload)
-        else:
-            self.cmd_unload(drive_unload,self.instance_data["bin_unload"])
+        self.cmd_unload(drive_unload,self.instance_data["bin_unload"])
         # Add to bin count
         self.instance_data["bin_count"][self.instance_data["bin_unload"]-1]+=1
         # leave tray open for quick loading5

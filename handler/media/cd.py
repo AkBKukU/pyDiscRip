@@ -7,6 +7,7 @@ import os
 import json
 from pathlib import Path
 import time
+from datetime import datetime
 
 # External Modules
 import libdiscid
@@ -167,6 +168,29 @@ class MediaHandlerCD(MediaOptical):
             }
         }
 
+
+        # Wait for 30 seconds between requests to not get blocked
+        tmp=self.ensureDir("/tmp/discrip")
+        wait=True
+        while(wait):
+            if not os.path.isfile(f"{tmp}/musicbrainz.json"):
+                wait=False
+            else:
+                with open(f"{tmp}/musicbrainz.json", newline='') as output:
+                    tdata = json.load(output)
+
+                    if tdata["next"] < int(datetime.now().timestamp()):
+                        wait=False
+                    else:
+                        print(f"Waiting: {tdata["next"]} < {int(datetime.now().timestamp())}")
+                        time.sleep(10)
+        state_store={}
+        state_store["next"]=int(datetime.now().timestamp()) + 30
+
+        with open(f"{tmp}/musicbrainz.json", 'w', encoding="utf-8") as output:
+            output.write(json.dumps(state_store, indent=4))
+
+
         # Don't re-download data if exists
         if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["JSON"]}"):
             # https://python-discid.readthedocs.io/en/latest/usage/#fetching-metadata
@@ -222,14 +246,11 @@ class MediaHandlerCD(MediaOptical):
         # Determine number of seesions to rip
         self.countSessions(media_sample)
         # Get metadata for audio CD
-        try:
-            data_output = self.fetchMetadata(media_sample)
+        data_output = self.fetchMetadata(media_sample)
 
-            # Add metadata if was found
-            if data_output is not None:
-                    datas.append(data_output)
-        except Exception as e:
-            print("Unable to fetch musicbrainz data")
+        # Add metadata if was found
+        if data_output is not None:
+                datas.append(data_output)
 
         # cd-info log
         result = self.osRun(["cd-info", f"{media_sample["drive"]}"])
