@@ -213,7 +213,6 @@ class ControllerAutoPublisherLS(ControllerHandler):
             for cal_cmd in self.cal:
                 self.cmdSend(cal_cmd)
 
-            pprint(self.config_data["cal"])
             # Drive 1 tray height
             self.cmdSend(f"c09d21n{self.config_data["cal"]["DRIVE_1"]}")
             # Drive 2 tray height
@@ -845,7 +844,6 @@ class ControllerAutoPublisherLS(ControllerHandler):
         print("Bin 5 position")
         diff = None
         while( diff != 0):
-            self.cmdSend(self.cmd["MOVE_TRAY_3"])
             self.cmdSend(self.cmd["MOVE_BIN_5"])
             diff = int(input(f"Input change ( Current: {self.config_data["cal"]["BIN_5"]}, Last change: {diff}): ").strip() or "0")
             self.config_data["cal"]["BIN_5"] += diff
@@ -1016,15 +1014,15 @@ if __name__ == "__main__":
     """
     controller = ControllerAutoPublisherLS()
     controller.config_data["serial_port"] = "/dev/ttyUSB0"
-    controller.config_data["debug_print"] = True
+    controller.config_data["debug_print"] = False
     controller.config_data["drives"] = [
-            "/dev/sr1",
             "/dev/sr2",
+            "/dev/sr3",
             "/dev/sr4"
         ]
     controller.initialize()
-    # controller.calibrate()
-    # sys.exit(0)
+    controller.calibrate()
+    sys.exit(0)
     #time.sleep(5)
 
     count = 3
