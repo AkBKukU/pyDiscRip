@@ -5,6 +5,7 @@
 # Python System
 import sys, os
 import json
+import shutil
 from enum import Enum
 from datetime import datetime
 
@@ -38,4 +39,31 @@ class MediaHandler(Handler):
     def mediaMatch(self, media_sample=None):
         """Check if the media sample should be handled by this type"""
         return media_sample["media_type"] == self.type_id
+
+    def checkPhoto(self, media_sample):
+            # Build path to check for image
+            drivepath = self.cleanFilename(media_sample["drive"])
+            tmp="/tmp/discrip/photo/"+drivepath
+            print(f"Looking for photo :{tmp}/photo.jpg")
+            if os.path.isfile(f"{tmp}/photo.jpg"):
+
+                data = {
+                    "type_id": "IMAGE",
+                    "processed_by": [],
+                    "data_dir": self.ensureDir(f"{self.getPath()}/status"),
+                    "data_files": {
+                        "JPG": f"media.jpg" # Reusing project dir for name
+                    }
+                }
+
+                dest=self.ensureDir(f"{self.getPath()}/status")
+                print(f"Copying photo to :{dest}/media.jpg")
+                shutil.copyfile(f"{tmp}/photo.jpg", dest+"/media.jpg")
+
+                # Return all generated data
+                return [data]
+            else:
+                print(f"No photo found")
+
+
 

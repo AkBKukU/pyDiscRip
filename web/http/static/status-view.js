@@ -35,6 +35,16 @@ function mediaSampleView(media_sample)
 			}
 		}
 	}
+	if (media_sample["media_type"] == "CD" && !( media_sample["data"] === undefined))
+	{
+		for (const data of media_sample["data"])
+		{
+			if (data["type_id"]=="IMAGE")
+			{
+				img.src = "/output/"+data["data_dir"]+"/"+data["data_files"]["JPG"]
+			}
+		}
+	}
 	td.appendChild(img);
 	tr.appendChild(td);
 

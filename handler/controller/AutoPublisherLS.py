@@ -19,9 +19,8 @@ except Exception as e:
 
 # Internal Modules
 if __name__ == "__main__":
-    class ControllerHandler(object):
-        def __init__(self):
-            print("Totally a real class")
+    from controller_handler import ControllerHandler
+    class ControllerParent(ControllerHandler):
         def osRun(self, cmd):
             try:
                 result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -38,10 +37,10 @@ if __name__ == "__main__":
             return path
 
 else:
-    from handler.controller.controller_handler import ControllerHandler
+    from handler.controller.controller_handler import ControllerHandler as ControllerParent
 
 
-class ControllerAutoPublisherLS(ControllerHandler):
+class ControllerAutoPublisherLS(ControllerParent):
     """Handler for CD Aleratec AutoPublisher LS
 
     Intended to be stateless and run from differnt processes. Uses a JSON data
@@ -60,11 +59,13 @@ class ControllerAutoPublisherLS(ControllerHandler):
         self.controller_id = "apls"
         # Default config data
         self.config_data={
+            "camera":self.camera_defaults,
             "bin":1,
             "looping":False,
             "debug_print":False,
             "serial_port":None,
             "drives":[], # media_name, open
+            "drive_focus": [35,35,30],
             "cal":
                 {
                     "BIN_1":652,
@@ -706,59 +707,60 @@ class ControllerAutoPublisherLS(ControllerHandler):
         Automatically switches to next bin when empty
 
         """
-        try:
-            #Read instance data from JSON
-            self.instance_data = self.instance_get()
-            # Wait until inactive
-            self.active()
+        #Read instance data from JSON
+        self.instance_data = self.instance_get()
+        # Wait until inactive
+        self.active()
 
-            # Find which bin has new media (internally tracked)
-            bin_load = self.instance_data["bin_load"]
-            # Get drive ID from drive path
-            drive_load=self.config_data["drives"].index(drive)+1
-            # Close all other trays if open
-            for i in range(1, 4):
-                if i != drive_load:
-                    self.drive_trayClose(i)
-                    self.instance_data["drive_open"][i-1]=False
-            # Check if tray was only left open (internally tracked)
-            if not self.instance_data["drive_open"][drive_load-1]:
-                # False: closed
-                self.drive_trayOpen(drive_load)
-                self.instance_data["drive_open"][drive_load-1]=True
-                #time.sleep(5)
+        # Find which bin has new media (internally tracked)
+        bin_load = self.instance_data["bin_load"]
+        # Get drive ID from drive path
+        drive_load=self.config_data["drives"].index(drive)+1
+        # Close all other trays if open
+        for i in range(1, 4):
+            if i != drive_load:
+                self.drive_trayClose(i)
+                self.instance_data["drive_open"][i-1]=False
+        # Check if tray was only left open (internally tracked)
+        if not self.instance_data["drive_open"][drive_load-1]:
+            # False: closed
+            self.drive_trayOpen(drive_load)
+            self.instance_data["drive_open"][drive_load-1]=True
+            #time.sleep(5)
 
-            # Save tray status
-            self.instance_save(self.instance_data)
+        # Save tray status
+        self.instance_save(self.instance_data)
 
-            # Get current unload bin
-            end = self.instance_data["bin_unload"]
+        # Get current unload bin
+        end = self.instance_data["bin_unload"]
 
-            # Run load command
-            loading_disc=True
-            while(loading_disc):
-                # Attempt load
-                if self.cmd_load(drive_load, bin_load):
-                    # Loaded disc
-                    loading_disc=False
-                else:
-                    # Load failed, try next bin
-                    self.setBin(self.instance_data["bin_load"]+1)
-                    bin_load = self.instance_data["bin_load"]
-                    # If next bin was last unload error out assuming no new media
-                    if self.instance_data["bin_load"] == end:
-                        print("No discs found")
-                        sys.exit(0) # TODO - Need to be able to halt here until media is found
+        # Run load command
+        loading_disc=True
+        while(loading_disc):
+            # Attempt load
+            if self.cmd_load(drive_load, bin_load):
+                # Loaded disc
+                loading_disc=False
+            else:
+                # Load failed, try next bin
+                self.setBin(self.instance_data["bin_load"]+1)
+                bin_load = self.instance_data["bin_load"]
+                # If next bin was last unload error out assuming no new media
+                if self.instance_data["bin_load"] == end:
+                    print("No discs found")
+                    sys.exit(0) # TODO - Need to be able to halt here until media is found
 
-            # Close tray for reading
-            self.drive_trayClose(drive_load)
-            self.instance_data["drive_open"][drive_load-1]=False
-            # Release active state
-            self.active(False)
-            return False
-        except Exception as e:
-            print("EMERGENCY STOP - ERROR LOADING AUTO PUBLISHER")
-            sys.exit(1)
+        # Take disc photo
+        self.cmdSend(self.cmd["MOVE_BIN_1"])
+        time.sleep(1)
+        self.photoDrive(self.cleanFilename(self.config_data["drives"][drive_load-1]), self.config_data["drive_focus"][drive_load-1])
+
+        # Close tray for reading
+        self.drive_trayClose(drive_load)
+        self.instance_data["drive_open"][drive_load-1]=False
+        # Release active state
+        self.active(False)
+        return False
 
 
 
@@ -1016,14 +1018,29 @@ if __name__ == "__main__":
     controller.config_data["serial_port"] = "/dev/ttyUSB0"
     controller.config_data["debug_print"] = False
     controller.config_data["drives"] = [
+            "/dev/sr1",
             "/dev/sr2",
-            "/dev/sr3",
-            "/dev/sr4"
+            "/dev/sr3"
         ]
+    controller.config_data["camera"] = {
+                "video_id":0, # The /dev/video# id for the camera to use
+                "camera_x":1920,
+                "camera_y":1080,
+                "crop_x0":0,
+                "crop_y0":0,
+                "crop_x1":1920,
+                "crop_y1":1080,
+                "focus":0
+            }
     controller.initialize()
-    controller.calibrate()
+    # controller.calibrate()
+    # sys.exit(0)
+    controller.load(controller.config_data["drives"][0])
+    #controller.load(controller.config_data["drives"][1])
+    #controller.load(controller.config_data["drives"][2])
+    time.sleep(5)
+    #controller.eject(controller.config_data["drives"][0])
     sys.exit(0)
-    #time.sleep(5)
 
     count = 3
     while count:

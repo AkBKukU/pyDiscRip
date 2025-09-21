@@ -243,6 +243,7 @@ class MediaHandlerCD(MediaOptical):
 
         # Setup rip output path
         self.setProjectDir(media_sample["name"])
+
         # Determine number of seesions to rip
         self.countSessions(media_sample)
         try:
@@ -257,11 +258,12 @@ class MediaHandlerCD(MediaOptical):
 
         # cd-info log
         result = self.osRun(["cd-info", f"{media_sample["drive"]}"])
-        self.log("cd-info_stdout",str(result.stdout))
-        self.log("cd-info_stderr",str(result.stderr))
+        self.log("cd-info_stdout",str(result.stdout.decode("ascii")))
+        self.log("cd-info_stderr",str(result.stderr.decode("ascii")))
 
         # Rip all sessions on CD
-        data_outputs = self.ripBinCue(media_sample)
+        data_outputs=self.ripBinCue(media_sample)
+
 
         # Add all session rips
         if data_outputs is not None:

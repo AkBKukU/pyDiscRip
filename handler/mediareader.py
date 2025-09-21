@@ -294,12 +294,27 @@ class MediaReader(object):
 
         # Set starting status
         media_sample["done"] = False
+        media_sample["data"]=[]
 
         # Init media manager
         media_manager = MediaHandlerManager()
 
         # Get a media handler for this type of media_sample
         media_handler = media_manager.findMediaType(media_sample)
+        # Setup rip output path
+        media_handler.setOutputDir(config_data["settings"]["output"])
+        media_handler.setProjectDir(media_sample["name"])
+
+        # Check for media photo
+        data_outputs = media_handler.checkPhoto(media_sample)
+
+        # Add all session rips
+        if data_outputs is not None:
+            for data in data_outputs:
+                media_sample["data"].append(data)
+
+        # Post-image status
+        media_handler.status(media_sample)
 
         # Set rip start time
         if "time_start" not in media_sample:
@@ -315,7 +330,6 @@ class MediaReader(object):
             data_outputs = media_handler.rip(media_sample)
             # Add all data to the media object
             if data_outputs is not None:
-                media_sample["data"]=[]
                 for data in data_outputs:
                     media_sample["data"].append(data)
 

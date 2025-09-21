@@ -117,6 +117,9 @@ class WebInterface(object):
         media_sample["config_data"] = json.loads(request.form['config_options_json_data'])
         #return pprint(request.form)
 
+        if not os.path.exists(f"{self.settings["watch"]}"):
+            os.makedirs(f"{self.settings["watch"]}")
+
         with open(f"{self.settings["watch"]}/{media_sample["name"]}.json", 'w', encoding="utf-8") as output:
             output.write(json.dumps(media_sample, indent=4))
 
