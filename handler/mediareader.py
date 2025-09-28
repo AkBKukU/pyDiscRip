@@ -300,7 +300,7 @@ class MediaReader(object):
         media_manager = MediaHandlerManager()
 
         # Get a media handler for this type of media_sample
-        media_handler = media_manager.findMediaType(media_sample)
+        media_handler = media_manager.findMediaType(media_sample,config_data)
         # Setup rip output path
         media_handler.setOutputDir(config_data["settings"]["output"])
         media_handler.setProjectDir(media_sample["name"])
@@ -379,7 +379,7 @@ class MediaReader(object):
 
         # Get a media handler for this type of media_sample
         pprint(media_sample)
-        media_handler = media_manager.findMediaType(media_sample)
+        media_handler = media_manager.findMediaType(media_sample,config_data)
 
         # Set controller
         media_handler.controller = controller

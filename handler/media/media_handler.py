@@ -24,6 +24,8 @@ class MediaHandler(Handler):
         """
         # Call parent constructor
         super().__init__()
+        # Set handler ID
+        self.handler_id = None
         # Set media type id for later use
         self.type_id=None
         # Set directory to work in

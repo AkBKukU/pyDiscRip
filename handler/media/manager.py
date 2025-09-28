@@ -14,6 +14,7 @@ except Exception as e:
 # Internal Modules
 from handler.media.optical import MediaOptical
 from handler.media.cd import MediaHandlerCD
+from handler.media.cd_redumper import MediaHandlerCDRedumper
 from handler.media.dvd import MediaHandlerDVD
 from handler.media.ddisk import MediaHandlerDDisk
 from handler.media.floppy import MediaHandlerFloppy
@@ -37,7 +38,8 @@ class MediaHandlerManager(object):
         # Add all supported media types
         self.media_types={}
         self.media_types["OPTICAL"] = MediaOptical()
-        self.media_types["CD"] = MediaHandlerCD()
+        self.media_types["CD_cdrdao"] = MediaHandlerCD()
+        self.media_types["CD_redumper"] = MediaHandlerCDRedumper()
         self.media_types["DVD"] = MediaHandlerDVD()
         self.media_types["DDISK"] = MediaHandlerDDisk()
         self.media_types["FLOPPY"] = MediaHandlerFloppy()
@@ -74,7 +76,7 @@ class MediaHandlerManager(object):
         return
 
 
-    def findMediaType(self,media_sample):
+    def findMediaType(self,media_sample,config_data):
         """Match media handler to type and return handler
 
         """
@@ -88,7 +90,10 @@ class MediaHandlerManager(object):
         for type_id, media_type in self.media_types.items():
             # If handler can proccess media return it
             if media_type.mediaMatch(media_sample):
-                return media_type
+                if media_type.handler_id == None:
+                    return media_type
+                if config_data["settings"]["media_handlers"][media_sample["media_type"]] == media_type.handler_id:
+                    return media_type
 
         # No handlers found
         print(f"No handlers found for following media sample:")

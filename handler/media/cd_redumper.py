@@ -19,7 +19,7 @@ from handler.media.media_handler import MediaHandler
 from handler.media.optical import MediaOptical
 
 
-class MediaHandlerCD(MediaOptical):
+class MediaHandlerCDRedumper(MediaOptical):
     """Handler for CD media types
 
     rips using a subprocess command to run `cdrdao` to create a BIN/CUE
@@ -32,53 +32,14 @@ class MediaHandlerCD(MediaOptical):
         # Call parent constructor
         super().__init__()
         # Set handler ID
-        self.handler_id="cdrdao"
+        self.handler_id="redumper"
         # Set media type to handle
         self.type_id="CD"
         # Default config data
-        self.config_data={
-            "cdrdao_driver":"generic-mmc-raw:0x20000",
-            "paranoia_mode":"3",
-        }
+        self.config_data={}
         # Data types output
-        self.data_outputs=["BINCUE","MUSICBRAINZ"]
-        # CD info to be collected
-        self.cd_sessions=0
-        self.cd_tracks=0
+        self.data_outputs=["BINCUE_SPLIT","MUSICBRAINZ"]
 
-
-    def countSessions(self,media_sample):
-        """Use cdrdao to count the number of sessions on a CD
-
-        CDs may conntain multiple sessions which will each be ripped into
-        seperate BIN/CUE files.
-        """
-# Sample output
-# cdrdao disk-info --device  /dev/sr1
-# Cdrdao version 1.2.4 - (C) Andreas Mueller <andreas@daneb.de>
-# /dev/sr1: HL-DT-ST BD-RE WP50NB40       Rev: 1.03
-# Using driver: Generic SCSI-3/MMC - Version 2.0 (options 0x0000)
-#
-# That data below may not reflect the real status of the inserted medium
-# if a simulation run was performed before. Reload the medium in this case.
-#
-# CD-RW                : no
-# Total Capacity       : n/a
-# CD-R medium          : n/a
-# Recording Speed      : n/a
-# CD-R empty           : no
-# Toc Type             : CD-DA or CD-ROM
-# Sessions             : 2
-# Last Track           : 23
-# Appendable           : no
-
-        # Run command
-        result = self.osRun(["cdrdao", "disk-info", "--device", f"{media_sample["drive"]}"])
-
-        # Parse output to find session count
-        self.log("cdrdao-disk-info",result.stdout.decode("utf-8"))
-        self.cd_sessions=int(result.stdout.decode("utf-8").split("Sessions             : ")[1][:1])
-        print(f"Sessions Found: {self.cd_sessions}")
 
 
     def ripBinCue(self, media_sample):
@@ -90,68 +51,57 @@ class MediaHandlerCD(MediaOptical):
         datas=[]
         # Start ripping all sessions
         sessions = 1
-        while sessions <= self.cd_sessions:
-            print(f"Rip session: {sessions}")
-            print(f"Rip to: {self.getPath()}")
-            # Build data output
-            data = {
-                "type_id": "BINCUE",
-                "processed_by": [],
-                "done": False,
-                "data_dir": self.ensureDir(f"{self.getPath()}/BINCUE/{media_sample["name"]}-S{sessions}"),
-                "data_files": {
-                    "BIN": f"{media_sample["name"]}-S{sessions}.bin",
-                    "CUE": f"{media_sample["name"]}-S{sessions}.cue",
-                    "TOC": f"{media_sample["name"]}-S{sessions}.toc"
-                }
+        print(f"Rip to: {self.getPath()}")
+        # Build data output
+        data = {
+            "type_id": "BINCUE_SPLIT",
+            "processed_by": [],
+            "done": False,
+            "data_dir": self.ensureDir(f"{self.getPath()}/BINCUE_SPLIT/{media_sample["name"]}-S{sessions}"),
+            "data_files": {
+                "BIN": f"{media_sample["name"]}-S{sessions}.bin",
+                "CUE": f"{media_sample["name"]}-S{sessions}.cue",
+                "TOC": f"{media_sample["name"]}-S{sessions}.toc"
             }
+        }
 
-            self.status(data)
+        self.status(data)
 
-            # Don't re-rip BIN/TOC
-            if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["BIN"]}"):
-                # Build cdrdao command to read CD
-                cmd = [
-                    "cdrdao",
-                    "read-cd",
-                    "--paranoia-mode",
-                    f"{self.config_data["cdrdao_driver"]}",
-                    "--read-raw",
-                    "--datafile",
-                    f"{data["data_dir"]}/{data["data_files"]["BIN"]}",
-                    "--device",
-                    f"{media_sample["drive"]}",
-                    "--session",
-                    f"{sessions}",
-                    "--driver",
-                    f"{self.config_data["cdrdao_driver"]}",
-                    f"{data["data_dir"]}/{data["data_files"]["TOC"]}",
+        # Don't re-rip BIN/TOC
+        if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["BIN"]}"):
+            # Build cdrdao command to read CD
+            cmd = [
+                "redumper",
+                "disc",
+                "--retries=100",
+                f"--drive={media_sample["drive"]}",
+                f"--image-path={data["data_dir"]}"
+
                 ]
 
-                # Run command
-                self.osRun(cmd)
+            # Run command
+            self.osRun(cmd)
 
 
-            # Don't re-convert CUE
-            if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["CUE"]}"):
-                # Build toc2cue command to generate CUE
-                cmd = [
-                    "toc2cue",
-                    f"{data["data_dir"]}/{data["data_files"]["TOC"]}",
-                    f"{data["data_dir"]}/{data["data_files"]["CUE"]}"
-                ]
+        # # Don't re-convert CUE
+        # if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["CUE"]}"):
+        #     # Build toc2cue command to generate CUE
+        #     cmd = [
+        #         "toc2cue",
+        #         f"{data["data_dir"]}/{data["data_files"]["TOC"]}",
+        #         f"{data["data_dir"]}/{data["data_files"]["CUE"]}"
+        #     ]
+        #
+        #     # Run command
+        #     result = self.osRun(cmd)
+        #     self.log("cdrdao_stdout",str(result.stdout))
+        #     self.log("cdrdao_stderr",str(result.stderr))
 
-                # Run command
-                result = self.osRun(cmd)
-                self.log("cdrdao_stdout",str(result.stdout))
-                self.log("cdrdao_stderr",str(result.stderr))
-
-            # Continue to next session
-            sessions += 1
-            data["done"]=True
-            self.status(data)
-            # Add generated data to output
-            datas.append(data)
+        # Continue to next session
+        data["done"]=True
+        self.status(data)
+        # Add generated data to output
+        datas.append(data)
 
         # Return all generated data
         return datas
@@ -246,8 +196,6 @@ class MediaHandlerCD(MediaOptical):
         # Setup rip output path
         self.setProjectDir(media_sample["name"])
 
-        # Determine number of seesions to rip
-        self.countSessions(media_sample)
         try:
             # Get metadata for audio CD
             data_output = self.fetchMetadata(media_sample)

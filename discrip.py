@@ -237,6 +237,10 @@ def main():
                 "port": 5000,
                 "ip": "0.0.0.0"
             },
+            "media_handlers":
+                {
+                  "CD":"cdrdao"
+                },
             "output": "",
             "watch": None,
             "fifo": False
