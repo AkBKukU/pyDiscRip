@@ -73,14 +73,14 @@ class ControllerAutoPublisherLS(ControllerParent):
                     "BIN_3":2111,
                     "BIN_5":-75,
                     "ARM_BOTTOM":1832,
-                    "DRIVE_1":598,
-                    "DRIVE_2":1024,
-                    "DRIVE_3":1464,
-                    "TRAY_SLIDE":50,
+                    "DRIVE_1":570,
+                    "DRIVE_2":1006,
+                    "DRIVE_3":1446,
+                    "TRAY_SLIDE":0,
                     "DISC_MASH":10,
                     "TRAY_DUCK_UNLOAD":60,
                     "TRAY_DUCK_LOAD":60,
-                    "TRAY_ANGLE":-140
+                    "TRAY_ANGLE":-111
                 }
             }
 
@@ -1033,8 +1033,8 @@ if __name__ == "__main__":
                 "focus":0
             }
     controller.initialize()
-    # controller.calibrate()
-    # sys.exit(0)
+    controller.calibrate()
+    sys.exit(0)
     controller.load(controller.config_data["drives"][0])
     #controller.load(controller.config_data["drives"][1])
     #controller.load(controller.config_data["drives"][2])
