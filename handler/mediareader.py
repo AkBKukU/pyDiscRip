@@ -406,7 +406,7 @@ class MediaReader(object):
                     time.sleep(3)
 
         # Eject media
-        media_manager.ejectMediaType(media_sample)
+        media_manager.ejectMediaType(media_sample,controller)
 
         # queue update
         Handler.web_update(None,{"queue":{"name":media_sample["name"],"done":True}},config_data)

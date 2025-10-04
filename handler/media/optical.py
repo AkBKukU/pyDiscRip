@@ -82,13 +82,15 @@ class MediaOptical(MediaHandler):
                 wait_load=10
 
 
-    def eject(self,media_sample):
+    def eject(self,media_sample, controller=None):
         """Eject drive tray
         """
         print("OPTICAL EJECT")
         if self.controller is not None:
+            controller = self.controller
+        if controller is not None:
             print("Controller EJECT")
-            if self.controller.eject(media_sample["drive"]):
+            if controller.eject(media_sample["drive"]):
                 return
         print("EJECTING...")
         d=cdio.Device(media_sample["drive"])

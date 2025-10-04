@@ -4,6 +4,7 @@
 
 # External Modules
 import time, sys
+import json
 from pprint import pprint
 try:
     import pyudev
@@ -61,17 +62,25 @@ class MediaHandlerManager(object):
 
         # No handlers found
 
-    def ejectMediaType(self,media_sample):
+    def ejectMediaType(self,media_sample,controller=None):
         """Match media handler to type and return handler
 
         """
+        print("Ejecting through manager")
         # Iterate through all handlers
         for type_id, media_type in self.media_types.items():
             # If handler can proccess media return it
             if media_type.mediaMatch(media_sample):
+                print(f"Matched: {type_id}")
+                # Set controller
+                media_type.controller = controller
                 media_type.eject(media_sample)
                 return
 
+        # Generic optical
+        print("No match found, attempting generic optical")
+        if typeIsOptical(selfmedia_sample):
+            self.media_types["OPTICAL"].eject(media_sample)
         # No handlers found
         return
 
@@ -123,6 +132,9 @@ class MediaHandlerManager(object):
         # Init udev interface to access drive
         context = pyudev.Context()
 
+        # Countdown to assume it's a weird CD
+        countdown = 10
+
         # Get info from device
         output = True
         while(output):
@@ -145,8 +157,26 @@ class MediaHandlerManager(object):
             elif dev.properties.get("ID_CDROM_MEDIA_BD", False):
                 media_type="BD"
                 output = False
+
+            if output:
+                countdown-=1
+                if not countdown:
+                    media_type="CD"
+                    output = False
+                    print("Is probably a weird CD")
+
+            #print(json.dumps(dict(dev.properties),indent=4))
             time.sleep(3)
 
         return media_type
+
+    def typeIsOptical(selfmedia_sample):
+
+        # Generic optical
+        match media_sample.type_id:
+            case "CD" | "DVD"| "BD" | "CD_cdrdao" | "CD_redumper":
+                return True
+            case _:
+                return False
 
 
