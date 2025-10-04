@@ -32,7 +32,7 @@ class MediaHandlerCDRedumper(MediaOptical):
         # Call parent constructor
         super().__init__()
         # Set handler ID
-        self.handler_id="redumper"
+        self.handler_id="cd_redumper"
         # Set media type to handle
         self.type_id="CD"
         # Default config data

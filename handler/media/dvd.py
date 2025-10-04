@@ -24,6 +24,8 @@ class MediaHandlerDVD(MediaOptical):
         """
         # Call parent constructor
         super().__init__()
+        # Set handler ID
+        self.handler_id="dvd_ddrescue"
         # Set media type to handle
         self.type_id="DVD"
         # Data types output

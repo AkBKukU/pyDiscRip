@@ -239,7 +239,9 @@ def main():
             },
             "media_handlers":
                 {
-                  "CD":"cdrdao"
+                  "CD":"cdrdao",
+                  "DVD":"dvd_ddrescue",
+                  "BD":"bd_ddrescue"
                 },
             "output": "",
             "watch": None,

@@ -17,6 +17,8 @@ from handler.media.optical import MediaOptical
 from handler.media.cd import MediaHandlerCD
 from handler.media.cd_redumper import MediaHandlerCDRedumper
 from handler.media.dvd import MediaHandlerDVD
+from handler.media.dvd_redumper import MediaHandlerDVDRedumper
+from handler.media.bd_redumper import MediaHandlerBDRedumper
 from handler.media.ddisk import MediaHandlerDDisk
 from handler.media.floppy import MediaHandlerFloppy
 # Testing only
@@ -42,6 +44,8 @@ class MediaHandlerManager(object):
         self.media_types["CD_cdrdao"] = MediaHandlerCD()
         self.media_types["CD_redumper"] = MediaHandlerCDRedumper()
         self.media_types["DVD"] = MediaHandlerDVD()
+        self.media_types["DVD_redumper"] = MediaHandlerDVDRedumper()
+        self.media_types["BD_redumper"] = MediaHandlerBDRedumper()
         self.media_types["DDISK"] = MediaHandlerDDisk()
         self.media_types["FLOPPY"] = MediaHandlerFloppy()
         # Testing only
