@@ -7,6 +7,7 @@ import os
 import json
 from pathlib import Path
 import time
+import glob
 from datetime import datetime
 
 # External Modules
@@ -59,23 +60,23 @@ class MediaHandlerCDRedumper(MediaOptical):
             "done": False,
             "data_dir": self.ensureDir(f"{self.getPath()}/BINCUE_SPLIT/{media_sample["name"]}-S{sessions}"),
             "data_files": {
-                "BIN": f"{media_sample["name"]}-S{sessions}.bin",
-                "CUE": f"{media_sample["name"]}-S{sessions}.cue",
-                "TOC": f"{media_sample["name"]}-S{sessions}.toc"
+                "BIN": f"{media_sample["name"]}.bin",
+                "CUE": f"{media_sample["name"]}.cue"
             }
         }
 
         self.status(data)
 
         # Don't re-rip BIN/TOC
-        if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["BIN"]}"):
+        if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["CUE"]}"):
             # Build cdrdao command to read CD
             cmd = [
                 "redumper",
                 "disc",
                 "--retries=100",
                 f"--drive={media_sample["drive"]}",
-                f"--image-path={data["data_dir"]}"
+                f"--image-path={data["data_dir"]}",
+                f"--image-name={media_sample["name"]}"
 
                 ]
 
@@ -83,19 +84,11 @@ class MediaHandlerCDRedumper(MediaOptical):
             self.osRun(cmd)
 
 
-        # # Don't re-convert CUE
-        # if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["CUE"]}"):
-        #     # Build toc2cue command to generate CUE
-        #     cmd = [
-        #         "toc2cue",
-        #         f"{data["data_dir"]}/{data["data_files"]["TOC"]}",
-        #         f"{data["data_dir"]}/{data["data_files"]["CUE"]}"
-        #     ]
-        #
-        #     # Run command
-        #     result = self.osRun(cmd)
-        #     self.log("cdrdao_stdout",str(result.stdout))
-        #     self.log("cdrdao_stderr",str(result.stderr))
+        # Get files in output directory
+        bins = list(map(os.path.basename, glob.glob(f"{data["data_dir"]}/*.bin")))
+        # Sort wavs to have file order make sense
+        bins.sort()
+        data["data_files"]["BIN"] = bins
 
         # Continue to next session
         data["done"]=True
@@ -207,9 +200,9 @@ class MediaHandlerCDRedumper(MediaOptical):
             print("Musicbrainz error")
 
         # cd-info log
-        result = self.osRun(["cd-info", f"{media_sample["drive"]}"])
-        self.log("cd-info_stdout",str(result.stdout.decode("ascii")))
-        self.log("cd-info_stderr",str(result.stderr.decode("ascii")))
+        # result = self.osRun(["cd-info", f"{media_sample["drive"]}"])
+        # self.log("cd-info_stdout",str(result.stdout.decode("ascii")))
+        # self.log("cd-info_stderr",str(result.stderr.decode("ascii")))
 
         # Rip all sessions on CD
         data_outputs=self.ripBinCue(media_sample)

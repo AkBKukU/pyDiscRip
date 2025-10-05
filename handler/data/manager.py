@@ -7,6 +7,7 @@ from pprint import pprint
 # Internal Modules
 from handler.data.data_handler import DataHandler
 from handler.data.bincue import DataHandlerBINCUE
+from handler.data.bincue_split import DataHandlerBINCUESPLIT
 from handler.data.iso9660 import DataHandlerISO9660
 from handler.data.wav import DataHandlerWAV
 from handler.data.flux import DataHandlerFLUX
@@ -29,6 +30,7 @@ class DataHandlerManager(object):
         # Add all supported data types
         self.data_types={}
         self.data_types["BINCUE"] = DataHandlerBINCUE()
+        self.data_types["BINCUE_SPLIT"] = DataHandlerBINCUESPLIT()
         self.data_types["ISO9660"] = DataHandlerISO9660()
         self.data_types["WAV"] = DataHandlerWAV()
         self.data_types["FLUX"] = DataHandlerFLUX()

@@ -36,11 +36,18 @@ class DataHandlerBINCUE(DataHandler):
         """Use bchunk to extract all WAVs and ISOs from BINCUE
 
         """
+
+        if type(data_in["data_files"]["BIN"]) is list:
+            bin_path = data_in["data_files"]["BIN"][0].replace(".bin","")
+        else:
+            bin_path = data_in["data_files"]["BIN"].replace(".bin","")
+
+
         # Build data output for WAV
         data_wav = {
             "type_id": "WAV",
             "processed_by": [],
-            "data_dir": self.ensureDir(f"{self.getPath()}/WAV/{data_in["data_files"]["BIN"].replace(".bin","")}"),
+            "data_dir": self.ensureDir(f"{self.getPath()}/WAV/{bin_path}"),
             "data_files": {
                 "WAV": []
             }
@@ -50,7 +57,7 @@ class DataHandlerBINCUE(DataHandler):
         data_iso = {
             "type_id": "ISO9660",
             "processed_by": [],
-            "data_dir": self.ensureDir(f"{self.getPath()}/ISO9660/{data_in["data_files"]["BIN"].replace(".bin","")}"),
+            "data_dir": self.ensureDir(f"{self.getPath()}/ISO9660/{bin_path}"),
             "data_files": {
                 "ISO": []
             }
@@ -62,14 +69,47 @@ class DataHandlerBINCUE(DataHandler):
 
         # Don't re-convert if files exist
         if len(wavs) == 0 and len(isos) == 0 :
-            # Build bchunk command to generate CUE
-            cmd = [
-                "bchunk",
-                "-w",
-                f"{data_in["data_dir"]}/{data_in["data_files"]["BIN"]}",
-                f"{data_in["data_dir"]}/{data_in["data_files"]["CUE"]}",
-                f"{data_wav["data_dir"]}/track"
-            ]
+
+            if type(data_in["data_files"]["BIN"]) is list:
+                if len(data_in["data_files"]["BIN"]) > 1:
+
+                    with open(f"{data_in["data_dir"]}/{data_in["data_files"]["CUE"]}") as in_cue:
+                        with open(f"{data_in["data_dir"]}/{data_in["data_files"]["CUE"]}-s1.cue", 'w') as out_cue:
+                            for line in in_cue:
+                                if not "SESSION 02" in line:
+                                    out_cue.write(line+"\n")
+                                else:
+                                    break
+                    # Build bchunk command to generate CUE
+                    cmd = [
+                        "bchunk",
+                        "-w",
+                        f"{data_in["data_dir"]}/{data_in["data_files"]["BIN"][0]}",
+                        f"{data_in["data_dir"]}/{data_in["data_files"]["CUE"]}-s1.cue",
+                        f"{data_wav["data_dir"]}/track"
+                    ]
+
+
+                else:
+                    # Build bchunk command to generate CUE
+                    cmd = [
+                        "bchunk",
+                        "-w",
+                        f"{data_in["data_dir"]}/{data_in["data_files"]["BIN"][0]}",
+                        f"{data_in["data_dir"]}/{data_in["data_files"]["CUE"]}",
+                        f"{data_wav["data_dir"]}/track"
+                    ]
+
+
+            else:
+                # Build bchunk command to generate CUE
+                cmd = [
+                    "bchunk",
+                    "-w",
+                    f"{data_in["data_dir"]}/{data_in["data_files"]["BIN"]}",
+                    f"{data_in["data_dir"]}/{data_in["data_files"]["CUE"]}",
+                    f"{data_wav["data_dir"]}/track"
+                ]
 
             # Run command
             result = self.osRun(cmd)
