@@ -119,9 +119,16 @@ class ControllerHandler(Handler):
         data = bytes(raw_yuv)
         cam.close()
 
-        with Image(blob=data, format='UYVY',width=1920,height=1080,depth=8,colorspace="yuv") as image:
+        with Image(blob=data, format='UYVY',width=self.config_data["camera"]["camera_x"],height=self.config_data["camera"]["camera_y"],depth=8,colorspace="yuv") as image:
             # Build path to save image
             tmp=self.ensureDir("/tmp/discrip/photo/"+drivepath)
+            # Apply crop
+            image.crop(
+                self.config_data["camera"]["crop_x0"],
+                self.config_data["camera"]["crop_y0"],
+                self.config_data["camera"]["crop_x1"],
+                self.config_data["camera"]["crop_y1"],
+                )
 
             image.save(filename=tmp+"photo.jpg")
 

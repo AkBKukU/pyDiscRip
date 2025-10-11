@@ -2,29 +2,43 @@
 {
     color: #fff;
     background-color: #777;
+    padding-left: 2em;
+    padding-right: 2em;
 }
 
 #status-drives .good
 {
     color: #000;
     background-color: #5f5;
+    padding-left: 2em;
+    padding-right: 2em;
+    background-image: url("/static/img/good.svg");
+    background-repeat: no-repeat;
 }
 
 #status-drives .working
 {
     color: #000;
     background-color: #ff5;
+    padding-left: 2em;
+    padding-right: 2em;
+    background-image: url("/static/img/working.svg");
+    background-repeat: no-repeat;
 }
 
 #status-drives .attention
 {
     color: #000;
     background-color: #f00;
-    animation: blinker 1s linear infinite;
+    padding-left: 2em;
+    padding-right: 2em;
+    animation: blinker 2s linear infinite;
+    background-image: url("/static/img/warning.svg");
+    background-repeat: no-repeat;
 }
 @keyframes blinker {
     50% {
-        opacity: 0;
+        background-color: rgba(0,0,0,0);
     }
 }
 
