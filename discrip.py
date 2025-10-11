@@ -241,7 +241,7 @@ def main():
                 {
                   "CD":"cdrdao",
                   "DVD":"dvd_ddrescue",
-                  "BD":"bd_ddrescue"
+                  "BD":"bd_redumper"
                 },
             "output": "",
             "watch": None,
