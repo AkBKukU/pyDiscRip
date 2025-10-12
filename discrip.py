@@ -231,6 +231,10 @@ def main():
                             "TRAY_SLIDE":50,
                             "TRAY_ANGLE":-125
                         }
+                },
+                {
+                    "controller_type": "Greaseweazle",
+                    "id": "gw1"
                 }
             ],
             "web" : {
