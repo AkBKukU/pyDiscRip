@@ -62,24 +62,28 @@ class MediaOptical(MediaHandler):
         Overload with automatic methods where possible.
         """
         if self.controller is not None:
-            if self.controller.load(media_sample["drive"]):
-                return
+            self.controller.load(media_sample["drive"])
 
-
+        error_count=0
         print(f"Please insert [{media_sample["name"]}] into [{media_sample["drive"]}]")
         wait_load=0
         while(True):
             try:
+                time.sleep(wait_load)
                 d=cdio.Device(media_sample["drive"])
                 tracks = d.get_num_tracks()
                 print(f"Found disc with {tracks} tracks")
-                time.sleep(wait_load)
-                return
+                return True
             except cdio.TrackError:
                 print(f"Please insert [{media_sample["name"]}] into [{media_sample["drive"]}]")
-                self.eject(media_sample)
+
+                if self.controller is None:
+                    self.eject(media_sample)
                 self.web_update({"drive_status":{media_sample["drive"]:{"status":3,"title":f"Please insert [{media_sample["name"]}] into [{media_sample["drive"]}]"}}},media_sample["config_data"])
                 wait_load=10
+                error_count+=1
+                if self.controller is not None and error_count > 10:
+                    return False
 
 
     def eject(self,media_sample, controller=None):

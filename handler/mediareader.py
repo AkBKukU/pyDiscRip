@@ -375,7 +375,16 @@ class MediaReader(object):
         media_manager = MediaHandlerManager()
 
         # Load media with bypass for blocking actions where possible
-        media_manager.loadMediaType(media_sample,True,controller)
+        if media_manager.loadMediaType(media_sample,True,controller) == False:
+            # media was unreadable
+            Handler.web_update(None,{"drive_status":{media_sample["drive"]:{"status":2,"title":"Media unreadable, removing from queue"}}},config_data)
+            media_manager.ejectMediaType(media_sample,controller)# queue update
+            Handler.web_update(None,{"queue":{"name":media_sample["name"],"done":True}},config_data)
+
+            # Drive update
+            MediaReader.drive_status[media_sample["drive"]]["status"]=0
+            Handler.web_update(None,{"drive_status":{media_sample["drive"]:{"status":0,"title":"Idle","media":""}}},config_data)
+            return
 
         # Get a media handler for this type of media_sample
         pprint(media_sample)

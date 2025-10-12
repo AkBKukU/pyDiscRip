@@ -62,8 +62,7 @@ class MediaHandlerManager(object):
             if media_type.mediaMatch(media_sample):
                 # Set controller
                 media_type.controller = controller
-                media_type.load(media_sample,bypass)
-                return
+                return media_type.load(media_sample,bypass)
 
         # No handlers found
 
