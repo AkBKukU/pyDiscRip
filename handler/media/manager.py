@@ -6,6 +6,7 @@
 import time, sys
 import json
 from pprint import pprint
+import pathlib
 try:
     import pyudev
 except Exception as e:
@@ -144,6 +145,9 @@ class MediaHandlerManager(object):
         while(output):
             print("FIND A DISC TYPE")
             #print(f"Drive path: {drivepath}")
+
+            # Solve and symlinks to standard drive path
+            drivepath=str(pathlib.Path(drivepath).resolve())
             # NOTE: Returns as list but we are accessing a specific device
             devices = context.list_devices(sys_name=drivepath.replace("/dev/",""))
             dev = next(iter(devices))
