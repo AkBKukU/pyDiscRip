@@ -69,6 +69,11 @@ class MediaReader(object):
                 if media_sample["done"]:
                     continue
 
+
+                # Set Config data
+                if "config_data" not in media_sample:
+                    media_sample["config_data"] = config_data
+
                 # Check if drive is free
                 if drive_process[media_sample["drive"]] is None or not drive_process[media_sample["drive"]].is_alive():
 
