@@ -32,6 +32,7 @@ The header `media_type` is not required for optical discs, but is requried for o
 
 - CD
 - DVD
+- Some Bluray
 - Floppy
 
 #### CSV Line Examples
