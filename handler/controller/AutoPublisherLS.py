@@ -62,6 +62,7 @@ class ControllerAutoPublisherLS(ControllerParent):
             "camera":self.camera_defaults,
             "bin":1,
             "looping":False,
+            "debug_unload":False,
             "debug_print":False,
             "serial_port":None,
             "drives":[], # media_name, open
@@ -288,6 +289,9 @@ class ControllerAutoPublisherLS(ControllerParent):
         # Assume unloading bin is empty
         self.instance_data["bin_count"][self.instance_data["bin_unload"]-1]=0
 
+        # Unload back to same bin when debugging
+        if self.config_data["debug_unload"]:
+            self.instance_data["bin_unload"] = self.instance_data["bin_load"]
         #TODO Save instance data to JSON
         self.instance_save(self.instance_data)
 

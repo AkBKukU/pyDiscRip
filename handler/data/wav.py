@@ -87,7 +87,7 @@ class DataHandlerWAV(DataHandler):
                 elif json_data.get("cdstub"):
                     # Get track data for release
                     tracks = list(map((lambda t: t["title"]), json_data["cdstub"]["track-list"]))
-                    artist = json_data["artist"]
+                    artist = json_data["cdstub"]["artist"]
                     album = json_data["cdstub"]["title"]
                     year = 0
 

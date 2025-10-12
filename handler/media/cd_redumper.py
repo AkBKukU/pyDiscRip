@@ -173,6 +173,7 @@ class MediaHandlerCDRedumper(MediaOptical):
                     input("Press Enter to continue...")
                     return None
                 return data
+
         return data
 
 
