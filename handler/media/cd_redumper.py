@@ -165,13 +165,9 @@ class MediaHandlerCDRedumper(MediaOptical):
                         output.write(json.dumps(result, indent=4))
 
                 elif result.get("cdstub"):
-                    self.log("mb-cdstub",result,json_output=True)
-                    print("artist:\t" % result["cdstub"]["artist"])
-                    print("title:\t" % result["cdstub"]["title"])
-                    print("----------------------CONGRATS!----------------------")
-                    print("You just found a cdstub entry which I couldn't find a sample of how to use. If you are not me, please make an issue on github and attatch the json log file that was just saved. For now this software cannot handle that data and you will have to do manual tagging.")
-                    input("Press Enter to continue...")
-                    return None
+                    with open(f"{data["data_dir"]}/{data["data_files"]["JSON"]}", 'w', encoding="utf-8") as output:
+                        output.write(json.dumps(result, indent=4))
+                        print("Waring: Musicbrainz returned a CD stub which is not as good as a full entry.")
                 return data
 
         return data
