@@ -164,7 +164,7 @@ class MediaHandlerCD(MediaOptical):
         data = {
             "type_id": "MUSICBRAINZ",
             "processed_by": [],
-            "data_dir": f"{self.getPath()}/MUSICBRAINZ",
+            "data_dir": self.ensureDir(f"{self.getPath()}/MUSICBRAINZ"),
             "data_files": {
                 "JSON": f"{media_sample["name"]}-musicbrainz.json"
             }
