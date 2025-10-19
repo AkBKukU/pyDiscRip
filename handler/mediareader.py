@@ -342,12 +342,12 @@ class MediaReader(object):
                 media_handler.status(media_sample)
 
                 # Begin processing data
-                try:
-                    MediaReader.convert_data(media_sample,config_data)
-                    media_handler.status(media_sample)
+                #try:
+                MediaReader.convert_data(media_sample,config_data)
+                media_handler.status(media_sample)
 
-                except Exception as e:
-                    print("Conversion no worky")
+                #except Exception as e:
+                #    print("Conversion no worky")
 
                 # Run callback if provided
                 if callback_update is not None:
