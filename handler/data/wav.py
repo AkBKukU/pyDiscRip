@@ -116,7 +116,7 @@ class DataHandlerWAV(DataHandler):
                 data_files = {
                     "type_id": "FLAC",
                     "processed_by": [],
-                    "data_dir": self.ensureDir(f"{self.getPath()}/FLAC/{data["data_dir"].split("WAV/",1)[1]}/{artist}/{year} - {album}"),
+                    "data_dir": self.ensureDir(f"{self.getPath()}/FLAC/{data["data_dir"].split("WAV/",1)[1]}/{self.cleanFilename(artist)}/{year} - {self.cleanFilename(album)}"),
                     "data_files": {
                         "FLAC": []
                     }

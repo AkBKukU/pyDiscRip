@@ -81,7 +81,7 @@ function sendMediaForm()
 	jform.prepare();
 	const data = new URLSearchParams();
 	for (const pair of new FormData(document.getElementById('media_form'))) {
-		if (pair[0] == 'media_name') pair[1] = ts+"_"+pair[1]
+		if (document.getElementById('name_timestamp').checked && pair[0] == 'media_name') pair[1] = ts+"_"+pair[1]
 		data.append(pair[0], pair[1]);
 	}
 
