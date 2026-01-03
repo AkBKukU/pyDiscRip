@@ -83,6 +83,9 @@ class DataHandlerWAV(DataHandler):
                     album = json_data["disc"]["release-list"][0]["title"]
                     year = int(json_data["disc"]["release-list"][0]["date"][0:4])
 
+                    if "format" in release and release["format"] == "Mixed Mode CD":
+                        tracks.pop(0)
+
                 # Get discid for sample ripped
                 elif json_data.get("cdstub"):
                     # Get track data for release
