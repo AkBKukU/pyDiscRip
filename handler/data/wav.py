@@ -79,9 +79,21 @@ class DataHandlerWAV(DataHandler):
 
                     # Get track data for release
                     tracks = list(map((lambda t: t["recording"]["title"]), release["track-list"]))
-                    artist = json_data["disc"]["release-list"][0]["artist-credit-phrase"]
-                    album = json_data["disc"]["release-list"][0]["title"]
-                    year = int(json_data["disc"]["release-list"][0]["date"][0:4])
+
+                    if "artist-credit-phrase" in json_data["disc"]["release-list"][0]:
+                        artist = json_data["disc"]["release-list"][0]["artist-credit-phrase"]
+                    else:
+                        artist = "Unknown Artist"
+
+                    if "title" in json_data["disc"]["release-list"][0]:
+                        album = json_data["disc"]["release-list"][0]["title"]
+                    else:
+                        album = "Unknown Album"
+
+                    if "year" in json_data["disc"]["release-list"][0]:
+                        year = int(json_data["disc"]["release-list"][0]["date"][0:4])
+                    else:
+                        year = 0
 
                     if "format" in release and release["format"] == "Mixed Mode CD":
                         tracks.pop(0)

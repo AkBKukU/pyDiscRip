@@ -347,7 +347,7 @@ class MediaReader(object):
                     media_handler.status(media_sample)
 
                 except Exception as e:
-                    print("Conversion no worky")
+                    print("Conversion no worky: "+repr(e))
 
                 # Run callback if provided
                 if callback_update is not None:
