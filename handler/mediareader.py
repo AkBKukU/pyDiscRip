@@ -5,6 +5,7 @@ from multiprocessing import Process
 import time
 import subprocess
 import glob
+import os
 import json
 from urllib import request, parse
 
@@ -170,6 +171,10 @@ class MediaReader(object):
 
         run=True # TODO - This should be controled by callback_update to be able to stop
         while(run):
+            if os.path.isfile(f"{config_data["settings"]["watch"]}/pause"):
+                print("Queue is paused, waiting...")
+                time.sleep(10)
+                continue
             # Load media samples from a directory of JSON files instead of passing
             sample_files = glob.glob(f"{config_data["settings"]["watch"]}/*.json")
             for sample_file in sample_files:
