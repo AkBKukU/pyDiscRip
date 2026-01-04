@@ -94,4 +94,20 @@ function sendMediaForm()
 		document.getElementById('media_description').value = "";
 	});
 }
+
 document.getElementById('send_media_form').onclick = function() { sendMediaForm(); };
+
+
+function command_keys(event) {
+	switch (event.code)
+	{
+		case "Enter":
+			sendMediaForm();
+			break;
+		default:
+			return
+	}
+}
+
+document.getElementById('media_name').addEventListener('keydown', command_keys)
+document.getElementById('media_description').addEventListener('keydown', command_keys)
