@@ -38,6 +38,20 @@ function drivesUpdateAction(drive)
     });
 }
 
+function toggle_pause() {
+fetch('/pause')
+}
+
+
+function queue_status() {
+    queue_stat={}
+fetch('/status/queue_status.json').then((response) => response.json())
+    .then((data) =>
+    {
+        return  data
+    });
+}
+
 function queueLoadStatus(event)
 {
     fetch('/status/queue.json').then((response) => response.json())
@@ -50,6 +64,28 @@ function queueLoadStatus(event)
         var th = document.createElement("th");
         th.innerText = "Queue";
         th.colSpan = 2;
+        tr.appendChild(th);
+        table.appendChild(tr);
+
+        tr = document.createElement("tr");
+        th = document.createElement("td");
+        var label = document.createElement("label");
+        var input = document.createElement("input");
+        th.colSpan = 2;
+        fetch('/status/queue_status.json').then((response) => response.json())
+        .then((data) =>
+        {
+            input.checked = data["pause"];
+        });
+        label.innerText = "Queue Pause";
+        label.for = "queue_pause";
+        input.type = "checkbox";
+        input.id = "queue_pause";
+        input.name = "queue_pause";
+        input.addEventListener('click', toggle_pause);
+
+        th.appendChild(label);
+        th.appendChild(input);
         tr.appendChild(th);
         table.appendChild(tr);
 

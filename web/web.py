@@ -3,6 +3,7 @@
 from pprint import pprint
 import os, sys
 import json
+from pathlib import Path
 
 import logging
 
@@ -51,8 +52,10 @@ class WebInterface(object):
         self.app.add_url_rule('/status/status.json','output_status_json', self.output_status_json)
         self.app.add_url_rule('/status/drive_status.json','drive_status_json', self.drive_status_json)
         self.app.add_url_rule('/status/queue.json','queue_json', self.queue_json)
+        self.app.add_url_rule('/status/queue_status.json','queue_status', self.queue_status)
         self.app.add_url_rule('/status/file','settings_json', self.settings_json)
         self.app.add_url_rule('/update','update', self.update,methods=["POST"])
+        self.app.add_url_rule('/pause','pause', self.pause)
 
         # Callback data
         self.drive_status={}
@@ -108,6 +111,7 @@ class WebInterface(object):
 
         media_sample={}
         media_sample["name"] = request.form['media_name']
+        media_sample["queue_front"] = request.form['queue_front']
         media_sample["media_type"] = request.form['media_type']
         if(MediaReader.isGroup(self.settings["drives"],request.form['media_drive'])):
             media_sample["group"] = request.form['media_drive']
@@ -127,6 +131,15 @@ class WebInterface(object):
         # self.rip_thread.start()
         #return pprint(request.form)
         return send_file(self.host_dir+"http/rip/index.html")
+
+    def pause(self):
+
+        if os.path.isfile(f"{self.settings["watch"]}/pause"):
+            Path.unlink(f"{self.settings["watch"]}/pause")
+        else:
+                Path(f"{self.settings["watch"]}/pause").touch()
+
+        return "You got it"
 
     def update(self):
         """ Simple class function to send HTML to browser """
@@ -161,7 +174,10 @@ class WebInterface(object):
                 if match is not None:
                     self.queue[match] = media_sample
                 else:
-                    self.queue.append(media_sample)
+                    if media_sample["queue_front"] == "false":
+                        self.queue.append(media_sample)
+                    else:
+                        self.queue.insert(0,media_sample)
 
 
 
@@ -211,6 +227,12 @@ class WebInterface(object):
     def queue_json(self):
         """ Simple class function to send HTML to browser """
         return json.dumps(self.queue), 200, {'Content-Type': 'application/json; charset=utf-8'}
+
+    def queue_status(self):
+        """ Simple class function to send HTML to browser """
+        status = {}
+        status["pause"]=os.path.isfile(f"{self.settings["watch"]}/pause")
+        return json.dumps(status), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
     def callback_update(self,data):
         if "drive_status" in data:

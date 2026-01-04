@@ -171,10 +171,6 @@ class MediaReader(object):
 
         run=True # TODO - This should be controled by callback_update to be able to stop
         while(run):
-            if os.path.isfile(f"{config_data["settings"]["watch"]}/pause"):
-                print("Queue is paused, waiting...")
-                time.sleep(10)
-                continue
             # Load media samples from a directory of JSON files instead of passing
             sample_files = glob.glob(f"{config_data["settings"]["watch"]}/*.json")
             for sample_file in sample_files:
@@ -205,13 +201,24 @@ class MediaReader(object):
                             raw_media_sample["media_type"]=raw_media_sample["media_type"].upper()
                             raw_media_sample["id"]=sample_counter
                             sample_counter+=1
-                            media_samples.append(raw_media_sample)
+                            if raw_media_sample["queue_front"] == "false":
+                                print("Adding to end of queue")
+                                media_samples.append(raw_media_sample)
+                            else:
+                                print("Adding to front of queue")
+                                media_samples.insert(0,raw_media_sample)
+
                             # Drive update
                             Handler.web_update(None,{"queue":raw_media_sample},config_data)
                             # Ingest status
                             media_handler = Handler()
                             media_handler.config(config_data)
                             media_handler.status(raw_media_sample)
+
+            if os.path.isfile(f"{config_data["settings"]["watch"]}/pause"):
+                print("Queue is paused, waiting...")
+                time.sleep(1)
+                continue
 
             # Check drive groups for free drives
             for group_name, group in groups.items():

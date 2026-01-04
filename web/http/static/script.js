@@ -84,6 +84,7 @@ function sendMediaForm()
 		if (document.getElementById('name_timestamp').checked && pair[0] == 'media_name') pair[1] = ts+"_"+pair[1]
 		data.append(pair[0], pair[1]);
 	}
+	data.append("queue_front",document.getElementById('queue_front').checked == "on")
 
 	fetch("/rip", {
 		method: 'post',
