@@ -174,7 +174,7 @@ class WebInterface(object):
                 if match is not None:
                     self.queue[match] = media_sample
                 else:
-                    if media_sample["queue_front"] == "false":
+                    if "queue_front" not in media_sample or media_sample["queue_front"] == "false":
                         self.queue.append(media_sample)
                     else:
                         self.queue.insert(0,media_sample)

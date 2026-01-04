@@ -201,7 +201,7 @@ class MediaReader(object):
                             raw_media_sample["media_type"]=raw_media_sample["media_type"].upper()
                             raw_media_sample["id"]=sample_counter
                             sample_counter+=1
-                            if raw_media_sample["queue_front"] == "false":
+                            if "queue_front" not in raw_media_sample or raw_media_sample["queue_front"] == "false":
                                 print("Adding to end of queue")
                                 media_samples.append(raw_media_sample)
                             else:
