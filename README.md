@@ -79,13 +79,13 @@ Some features of this software require the usage of system level program executi
 
 You will need the following system packages:
 
-    cdrdao bchunk ddrescue 7z ibdiscid-dev python-dev-is-python3 libcdio-dev libiso9660-dev swig pkg-config libcdio-utils
+    cdrdao bchunk gddrescue 7z libdiscid-dev python-dev-is-python3 libcdio-dev libiso9660-dev swig pkg-config libcdio-utils imagemagick
 
 
 ### pip
 Make sure to install system packages first as some pip packages using them for building modules
 
-    flask pyudev python-libdiscid musicbrainzngs pycdio unidecode ffmpeg-python pyserial
+    flask pyudev python-libdiscid musicbrainzngs pycdio unidecode ffmpeg-python pyserial wand linuxpy
 
 For floppy media reading you will also need the greaseweazle software installed. You will most likely have it installed if you have used it before. But if you want to directly install the latest version you can use the following command:
 
