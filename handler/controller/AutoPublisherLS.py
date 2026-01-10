@@ -8,6 +8,7 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 import time
+import random
 from pprint import pprint
 
 # External Modules
@@ -57,6 +58,8 @@ class ControllerAutoPublisherLS(ControllerParent):
         self.type_id="AutoPublisherLS"
         # Default id
         self.controller_id = "apls"
+        # Instance check delay
+        self.delay = 5
         # Default config data
         self.config_data={
             "camera":self.camera_defaults,
@@ -306,7 +309,7 @@ class ControllerAutoPublisherLS(ControllerParent):
         if state is None:
             # Wait if the arm is doing another task
             while self.instance_data["active"]:
-                time.sleep(1)
+                time.sleep(self.delay + random.random()*self.delay)
                 #TODO - reload json data
                 self.instance_data = self.instance_get()
 
