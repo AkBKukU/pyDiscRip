@@ -31,7 +31,29 @@ function mediaSampleView(media_sample)
 		{
 			if (data["type_id"]=="IMAGE")
 			{
-				img.src = "/output/"+data["data_dir"]+"/"+data["data_files"]["PNG"]
+				if (data["data_files"].hasOwnProperty('PNG'))
+				{
+					img.src = "/output/"+data["data_dir"]+"/"+data["data_files"]["PNG"]
+				}else if (data["data_files"].hasOwnProperty('JPG') ){
+
+					img.src = "/output/"+data["data_dir"]+"/"+data["data_files"]["JPG"]
+				}
+			}
+		}
+	}
+	if (media_sample["media_type"] == "OPTICAL" && !( media_sample["data"] === undefined))
+	{
+		for (const data of media_sample["data"])
+		{
+			if (data["type_id"]=="IMAGE")
+			{
+				if (data["data_files"].hasOwnProperty('PNG'))
+				{
+					img.src = "/output/"+data["data_dir"]+"/"+data["data_files"]["PNG"]
+				}else if (data["data_files"].hasOwnProperty('JPG') ){
+
+					img.src = "/output/"+data["data_dir"]+"/"+data["data_files"]["JPG"]
+				}
 			}
 		}
 	}
@@ -41,7 +63,13 @@ function mediaSampleView(media_sample)
 		{
 			if (data["type_id"]=="IMAGE")
 			{
-				img.src = "/output/"+data["data_dir"]+"/"+data["data_files"]["JPG"]
+				if (data["data_files"].hasOwnProperty('PNG'))
+				{
+					img.src = "/output/"+data["data_dir"]+"/"+data["data_files"]["PNG"]
+				}else if (data["data_files"].hasOwnProperty('JPG') ){
+
+					img.src = "/output/"+data["data_dir"]+"/"+data["data_files"]["JPG"]
+				}
 			}
 		}
 	}

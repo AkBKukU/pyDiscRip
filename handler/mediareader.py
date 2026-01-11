@@ -7,6 +7,7 @@ import subprocess
 import glob
 import os
 import json
+import shutil
 from urllib import request, parse
 
 # Internal Modules
@@ -50,6 +51,27 @@ class MediaReader(object):
             with open(f"{tmp}/{pid}.json", 'w', encoding="utf-8") as output:
                 output.write(json.dumps(value, indent=4))
 
+    def getMediaPhotos(media_sample, output_dir):
+
+            tmp=Handler.ensureDir(None,"/tmp/discrip/photo/next_sample/")
+            print(f"Looking for photos in :{tmp}")
+            photos = glob.glob(f"{tmp}/*.jpg")
+            if not  "data" in media_sample:
+                media_sample["data"]=[]
+            for photo in photos:
+                sample_dir=Handler.ensureDir(None,f"{output_dir}/{media_sample["name"]}/Photos")
+                shutil.move(f"{photo}", f"{sample_dir}/{os.path.basename(photo)}")
+                data = {
+                    "type_id": "IMAGE",
+                    "processed_by": [],
+                    "data_dir": Handler.ensureDir(None,f"{sample_dir}"),
+                    "data_files": {
+                        "JPG": os.path.basename(photo) # Reusing project dir for name
+                    }
+                }
+                media_sample["data"].append(data)
+
+            return media_sample
 
     def rip_queue_drives(media_samples,config_data,callback_update=None):
         """ Use pre-set drive values in media_samples queue to rip data
@@ -200,6 +222,8 @@ class MediaReader(object):
 
                             raw_media_sample["media_type"]=raw_media_sample["media_type"].upper()
                             raw_media_sample["id"]=sample_counter
+
+
                             sample_counter+=1
                             if "queue_front" not in raw_media_sample or raw_media_sample["queue_front"] == "false":
                                 print("Adding to end of queue")
@@ -208,12 +232,18 @@ class MediaReader(object):
                                 print("Adding to front of queue")
                                 media_samples.insert(0,raw_media_sample)
 
-                            # Drive update
-                            Handler.web_update(None,{"queue":raw_media_sample},config_data)
                             # Ingest status
                             media_handler = Handler()
                             media_handler.config(config_data)
                             media_handler.status(raw_media_sample)
+
+                            # Get any media photos
+                            raw_media_sample = MediaReader.getMediaPhotos(raw_media_sample,config_data["settings"]["output"])
+
+                            # Update for photos
+                            media_handler.status(raw_media_sample)
+                            # Drive update
+                            Handler.web_update(None,{"queue":raw_media_sample},config_data)
 
             if os.path.isfile(f"{config_data["settings"]["watch"]}/pause"):
                 print("Queue is paused, waiting...")
