@@ -125,6 +125,9 @@ class MediaReader(object):
                     # Start ripping process
                     drive_process[media_sample["drive"]].start()
 
+                    # delay to fix drive order
+                    time.sleep(22)
+
                     # Count down samples
                     samples_left-=1
             # Pass time before checking drives again
@@ -319,6 +322,10 @@ class MediaReader(object):
 
                             # Start rip
                             group["drive"][drive]["process"].start()
+
+                            # delay to fix drive order
+                            time.sleep(22)
+
                             # Allow process moment to start because is_alive() is not instant
                             time.sleep(1)
                             # Process state
