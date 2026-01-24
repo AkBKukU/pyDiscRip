@@ -29,38 +29,38 @@ def rip_list_read(filepath: Optional[str] = None) -> List[Dict[str, str]]:
     """
 
     if not filepath:
-        raise ValueError("CSV filepath must be provided")  # Guard against None/"". - Jordan Ranous
+        raise ValueError("CSV filepath must be provided")  # Guard against None/"". - Jordan 
 
     media_samples: List[Dict[str, str]] = []
     csv_path = Path(filepath)
 
-    # Prefer explicit, readable failures over downstream KeyErrors. - Jordan Ranous
+    # Prefer explicit, readable failures over downstream KeyErrors. - Jordan 
     required_headers = {"drive", "name", "description"}
 
-    with csv_path.open(newline="", encoding="utf-8-sig") as csvfile:  # BOM-safe UTF-8. - Jordan Ranous
+    with csv_path.open(newline="", encoding="utf-8-sig") as csvfile:  # BOM-safe UTF-8. - Jordan 
         reader = csv.DictReader(csvfile, skipinitialspace=True)
 
-        # Empty file (no headers) -> empty list. - Jordan Ranous
+        # Empty file (no headers) -> empty list. - Jordan 
         if not reader.fieldnames:
             return []
 
-        # Normalize all CSV headers to lowercase + stripped. - Jordan Ranous
+        # Normalize all CSV headers to lowercase + stripped. - Jordan 
         reader.fieldnames = [str(h).strip().lower() for h in reader.fieldnames]
 
         missing = required_headers.difference(set(reader.fieldnames))
         if missing:
             raise ValueError(
                 f"CSV is missing required header(s): {', '.join(sorted(missing))}"
-            )  # Fail fast per CSV spec. - Jordan Ranous
+            )  # Fail fast per CSV spec. - Jordan 
 
         for row in reader:
-            # DictReader can yield None keys for malformed rows; filter them out. - Jordan Ranous
+            # DictReader can yield None keys for malformed rows; filter them out. - Jordan 
             clean_row = {k: v for k, v in row.items() if k is not None}
 
             # Convert media types to upper case if present
             if "media_type" in clean_row:
                 mt_raw = (clean_row.get("media_type") or "").strip()
-                clean_row["media_type"] = (mt_raw or "auto").upper()  # Blank => AUTO. - Jordan Ranous
+                clean_row["media_type"] = (mt_raw or "auto").upper()  # Blank => AUTO. - Jordan 
 
             media_samples.append(clean_row)
 
@@ -81,21 +81,21 @@ def _resolve_config_path(filepath: str) -> Path:
     if candidate.exists():
         return candidate
 
-    # Preserve original behavior: if it's not found, also try appending ".json". - Jordan Ranous
+    # Preserve original behavior: if it's not found, also try appending ".json". - Jordan 
     if candidate.suffix.lower() != ".json":
         candidate_json = Path(str(candidate) + ".json")
         if candidate_json.exists():
             return candidate_json
 
     print(f"Config file \"{filepath}\" not found.")
-    raise SystemExit(1)  # Preserve exit code. - Jordan Ranous
+    raise SystemExit(1)  # Preserve exit code. - Jordan 
 
 
 def config_read(filepath: Optional[str] = None) -> Dict[str, Any]:
     """Read a JSON with config parameters for media and data handlers."""
 
     if not filepath:
-        raise ValueError("Config filepath must be provided")  # Guard. - Jordan Ranous
+        raise ValueError("Config filepath must be provided")  # Guard. - Jordan 
 
     cfg_path = _resolve_config_path(filepath)
 
@@ -103,11 +103,11 @@ def config_read(filepath: Optional[str] = None) -> Dict[str, Any]:
         with cfg_path.open("r", encoding="utf-8") as jsonfile:
             config_data = json.load(jsonfile)
     except json.JSONDecodeError as e:
-        print(f"Config file \"{cfg_path}\" contains invalid JSON: {e}")  # Clear error. - Jordan Ranous
+        print(f"Config file \"{cfg_path}\" contains invalid JSON: {e}")  # Clear error. - Jordan 
         raise SystemExit(1)
 
     if not isinstance(config_data, dict):
-        print(f"Config file \"{cfg_path}\" must contain a JSON object at the top level.")  # Sanity. - Jordan Ranous
+        print(f"Config file \"{cfg_path}\" must contain a JSON object at the top level.")  # Sanity. - Jordan 
         raise SystemExit(1)
 
     return config_data
@@ -116,19 +116,19 @@ def config_read(filepath: Optional[str] = None) -> Dict[str, Any]:
 def config_dump(filename: str) -> None:
     """Save a JSON with all config parameter options for media and data handlers."""
 
-    # Import here to keep module import light and make unit tests cheaper. - Jordan Ranous
+    # Import here to keep module import light and make unit tests cheaper. - Jordan 
     from handler.mediareader import MediaReader  # pylint: disable=import-error
 
     out_path = Path(filename)
     tmp_path = out_path.with_suffix(out_path.suffix + ".tmp")
 
-    # Write to a temp file then replace, reducing the chance of partial writes. - Jordan Ranous
+    # Write to a temp file then replace, reducing the chance of partial writes. - Jordan 
     with tmp_path.open("w", encoding="utf-8") as f:
         json.dump(MediaReader.getConfigOptions(), f, indent=4)
     tmp_path.replace(out_path)
 
 
-# Global state used by the web runner. - Jordan Ranous
+# Global state used by the web runner. - Jordan 
 loop_state = True
 server = None
 
@@ -143,7 +143,7 @@ async def asyncLoop() -> None:
         while loop_state:
             await asyncio.sleep(1)
     except asyncio.CancelledError:
-        return  # Allow graceful cancellation. - Jordan Ranous
+        return  # Allow graceful cancellation. - Jordan 
 
 
 def exit_handler(sig, frame) -> None:
@@ -153,7 +153,7 @@ def exit_handler(sig, frame) -> None:
     print("You pressed Ctrl+C!")
     loop_state = False
 
-    # Guard server shutdown to avoid secondary exceptions on SIGINT. - Jordan Ranous
+    # Guard server shutdown to avoid secondary exceptions on SIGINT. - Jordan 
     try:
         if server is not None and hasattr(server, "stop"):
             result = server.stop()
@@ -189,7 +189,7 @@ async def startWeb(settings: Optional[Dict[str, Any]] = None) -> None:
 def _default_settings() -> Dict[str, Any]:
     """Return a fresh copy of the built-in default settings."""
 
-    # Kept as a function to avoid accidental mutation across runs. - Jordan Ranous
+    # Kept as a function to avoid accidental mutation across runs. - Jordan 
     return {
         "drives": {
             "Optical": [
@@ -342,8 +342,8 @@ def main() -> None:
     # Pass settings
     config_data["settings"] = settings
 
-    # Import managers + MediaReader here so unit tests can import this module without the full stack. - Jordan Ranous
-    # NOTE: Managers are imported for side-effect registration in handler registries. - Jordan Ranous
+    # Import managers + MediaReader here so unit tests can import this module without the full stack. - Jordan 
+    # NOTE: Managers are imported for side-effect registration in handler registries. - Jordan 
     from handler.media.manager import MediaHandlerManager  # noqa: F401  pylint: disable=unused-import,import-error
     from handler.data.manager import DataHandlerManager  # noqa: F401  pylint: disable=unused-import,import-error
     from handler.mediareader import MediaReader  # pylint: disable=import-error
@@ -354,7 +354,7 @@ def main() -> None:
         try:
             media_samples = rip_list_read(args.csv)
         except Exception as e:
-            print(f"Failed to read CSV: {e}", file=sys.stderr)  # Clear top-level error. - Jordan Ranous
+            print(f"Failed to read CSV: {e}", file=sys.stderr)  # Clear top-level error. - Jordan 
             sys.exit(1)
         MediaReader.rip_queue_drives(media_samples, config_data)
         sys.exit(0)
@@ -377,7 +377,7 @@ def main() -> None:
         sys.exit(0)
 
     # Begin ripping all media samples provided
-    # NOTE: This path is preserved for legacy/manual flows even though the current CLI uses rip_queue_* above. - Jordan Ranous
+    # NOTE: This path is preserved for legacy/manual flows even though the current CLI uses rip_queue_* above. - Jordan 
     rip_count = 1
     for media_sample in media_samples:
         MediaReader.rip(media_sample, config_data)
