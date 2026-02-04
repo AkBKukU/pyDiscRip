@@ -309,3 +309,36 @@ class Handler(object):
         Overload with automatic methods where possible.
         """
         print(f"Please remove [{media_sample["name"]}] from [{media_sample["drive"]}]")
+
+
+
+    def rename(self,media_sample, new_name):
+        """
+        Rename media_sample and all desendant data data formats
+        """
+        print(f"Renaming [{media_sample["name"]}] to [{new_name}]")
+
+        if True:
+            return
+
+        # Setup rip output path
+        self.setProjectDir(media_sample["name"])
+
+        # Go through all data in media sample
+        for data in media_sample["data"]:
+            # Check handler can work on data
+            if data["type_id"] == self.type_id:
+                # Check if handler has already worked on data
+                if self.type_id not in data["processed_by"]:
+                    # Convert data
+                    print(f"Converting {data["type_id"]} to {self.data_outputs[0]}")
+                    data_outputs = self.convertData(data)
+
+                    if data_outputs is not None:
+                        # Mark data as processed
+                        data["processed_by"].append(self.handle_id)
+                        # Add new data to media sample
+                        for data_new in data_outputs:
+                            if data_new is not None:
+                                media_sample["data"].append(data_new)
+
