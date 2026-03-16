@@ -84,7 +84,7 @@ class ControllerAutoPublisherLS(ControllerParent):
                     "DISC_MASH":10,
                     "TRAY_DUCK_UNLOAD":60,
                     "TRAY_DUCK_LOAD":60,
-                    "TRAY_ANGLE":-111
+                    "TRAY_ANGLE":-108
                 }
             }
 
@@ -309,7 +309,7 @@ class ControllerAutoPublisherLS(ControllerParent):
         if state is None:
             # Wait if the arm is doing another task
             while self.instance_data["active"]:
-                time.sleep(self.delay + random.random()*self.delay)
+                time.sleep(self.delay)
                 #TODO - reload json data
                 self.instance_data = self.instance_get()
 
