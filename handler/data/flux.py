@@ -46,7 +46,7 @@ class DataHandlerFLUX(DataHandler):
             "diskdefs-direct": None
         }
         # Data types output
-        self.data_outputs=["BINARY"]
+        self.data_outputs=["BINARY","FAT12"]
 
     def buildArgs(self,data_in, data,default_diskdef=True):
         # gw modules individually parse arguments to control rip process. This
@@ -95,7 +95,7 @@ class DataHandlerFLUX(DataHandler):
             args.append(f"{data_in["data_dir"]}/{data_in["data_files"]["flux"]}")
 
         # Add the file output as final parameter
-        args.append(f"{data["data_dir"]}/{data["data_files"]["BINARY"]}")
+        args.append(f"{data["data_dir"]}/{data["data_files"][self.output_type]}")
 
         # Log all parameters to be passed to gw read
         self.log("floppy_gw_args",args,json_output=True)
@@ -106,23 +106,28 @@ class DataHandlerFLUX(DataHandler):
         """Use gw python modules to convert FLUX to BINARY
 
         """
+        if self.config_data["gw"]["format"].startswith("ibm"):
+            self.output_type = "FAT12"
+        else:
+            self.output_type = "BINARY"
+
 
         if self.config_data["convert_output"] == "img":
             data = {
-                "type_id": "BINARY",
+                "type_id": self.output_type,
                 "processed_by": [],
-                "data_dir": self.ensureDir(f"{self.getPath()}/BINARY"),
+                "data_dir": self.ensureDir(f"{self.getPath()}/{self.output_type}"),
                 "data_files": {
-                    "BINARY": f"{self.project_dir}.img" # Reusing project dir for name
+                    self.output_type: f"{self.project_dir}.img" # Reusing project dir for name
                 }
             }
         else:
             data = {
-                "type_id": "BINARY",
+                "type_id": self.output_type,
                 "processed_by": [],
-                "data_dir": self.ensureDir(f"{self.getPath()}/BINARY"),
+                "data_dir": self.ensureDir(f"{self.getPath()}/{self.output_type}"),
                 "data_files": {
-                    "BINARY": f"{self.project_dir}.{self.config_data["convert_output"]}" # Reusing project dir for name
+                    self.output_type: f"{self.project_dir}.{self.config_data["convert_output"]}" # Reusing project dir for name
                 }
             }
 
@@ -134,7 +139,7 @@ class DataHandlerFLUX(DataHandler):
 
 
         # Don't re-convert flux
-        if not os.path.exists(f"{data["data_dir"]}/{data["data_files"]["BINARY"]}"):
+        if not os.path.exists(f"{data["data_dir"]}/{data["data_files"][self.output_type]}"):
             # Run the gw read process using arguments
             try:
                 # Use default diskdef

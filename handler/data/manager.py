@@ -12,6 +12,7 @@ from handler.data.iso9660 import DataHandlerISO9660
 from handler.data.wav import DataHandlerWAV
 from handler.data.flux import DataHandlerFLUX
 from handler.data.hxc_image import DataHandlerHXCImage
+from handler.data.mtools import DataHandlerMtools
 
 
 class DataHandlerManager(object):
@@ -35,6 +36,7 @@ class DataHandlerManager(object):
         self.data_types["WAV"] = DataHandlerWAV()
         self.data_types["FLUX"] = DataHandlerFLUX()
         self.data_types["HXC"] = DataHandlerHXCImage()
+        self.data_types["FAT12"] = DataHandlerMtools()
 
     def configVirtual(self,config):
         """Configure a new handler to use as a virtual data format

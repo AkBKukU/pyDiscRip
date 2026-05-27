@@ -188,6 +188,9 @@ class Handler(object):
 
         """
 
+        if self.config_data is None:
+            self.config_data = {}
+
         # Check for config data for handler
         if self.type_id in config_data:
             # Iterate over all top level config values
