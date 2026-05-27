@@ -187,12 +187,18 @@ class Handler(object):
         """Set configuration data for handler by matching ID
 
         """
+        if config_data is None:
+            return
+        else:
+            pprint(config_data)
+        if self.config_data is None:
+            self.config_data = {}
 
         # Check for config data for handler
         if self.type_id in config_data:
             # Iterate over all top level config values
             for key, value in config_data[self.type_id].items():
-                if value is not None:
+                if value is not None and key is not None:
                     # Set all config values
                     self.config_data[key] = value
 
